@@ -1,8 +1,8 @@
 // 🚀 SERVICE WORKER - V1.0
 // Handles offline caching & background sync
 
-const CACHE_NAME = 'qr-scanner-v1';
-const VERSION = '1.0';
+const CACHE_NAME = 'qr-scanner-v2';
+const VERSION = '1.1';
 
 // 📋 Assets untuk cache (saat install)
 const URLS_TO_CACHE = [
