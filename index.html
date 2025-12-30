@@ -522,7 +522,7 @@
 <script>
 const CREDS = {
   "bays 1": { pwd: "qwerty", line: "A" },
-  "bays 2": { pwd: "poiuyt", line: "B" },
+  "bays 2": { pwd: "asdfg", line: "B" },
   "bays 3": { pwd: "12345", line: "C" }
 };
 
@@ -741,14 +741,9 @@ function toHourMinute(minutes) {
 }
 
 function extractUnitNumber(qrText) {
+  // Mengambil teks sebelum tanda '|' dan membersihkan spasi
   const normalized = String(qrText).trim().toUpperCase();
-  const unitPart = normalized.includes('|') 
-    ? normalized.split('|')[0].trim() 
-    : normalized;
-  
-  const regex = /^(DT)\d{2}0-(\d{4})/i;
-  const match = unitPart.match(regex);
-  return match ? match[1].toUpperCase() + match[2] : unitPart;
+  return normalized.includes('|') ? normalized.split('|')[0].trim() : normalized;
 }
 
 // ✅ SIMPLIFIED: Parse DD/MM/YYYY HH:MM:SS format dari backend
