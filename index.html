@@ -458,7 +458,25 @@
     
     .offline-banner.show { display: block; }
     
+    /* Paste di baris kosong sebelum @media */
+    .main-site-title {
+    font-family: 'Poppins', sans-serif;
+    color: #FFFFFF;
+    text-align: center;
+    font-size: 36px; /* Ukuran besar untuk PC */
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 100px;
+    text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.9); /* Bayangan agar teks tajam */
+    animation: slideUpFadeIn 0.8s ease-out forwards;
+}
+
     @media (max-width: 480px) {
+      .main-site-title {
+      font-size: 20px; /* Ukuran lebih kecil khusus HP */
+      letter-spacing: 1px;
+      margin-bottom: 15px;}
       .login-box { padding: 35px 20px 30px; border-radius: 24px; }
       .logo-header img { width: 45px; height: 45px; }
       .login-box h1 { font-size: 24px; }
@@ -476,11 +494,12 @@
 
 <div id="loginPage">
   <div class="login-container">
+    <h1 class="main-site-title">DIGITALISASI MACO HAULING ERA</h1> 
     <div class="login-box">
       <div class="logo-header">
         <h1 style="margin:0;font-size:24px;">Refueling QR</h1>
       </div>
-      <p>Login dengan akun sesuai dengan BAYS Anda untuk mulai scan</p>
+      <p>Login dengan akun sesuai dengan lokasi BAYS anda, Untuk memulai proses scan</p>
       <div class="error-box" id="errorMsg"></div>
       <form onsubmit="handleLogin(event)">
         <div class="form-group">
