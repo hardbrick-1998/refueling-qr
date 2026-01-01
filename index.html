@@ -560,8 +560,7 @@
     </div>
   </div>
   <div class="scanner-content">
-    <div class="scanner-main">
-      <div class="qr-display-area">
+    <div class="scanner-main"> <div class="qr-display-area">
         <h2>Scan QR Code</h2>
         <div class="qr-reader-wrapper">
           <div id="qr-reader"></div>
@@ -573,24 +572,28 @@
           <button id="stopBtn">⏹</button>
         </div>
       </div>
-    </div>
-  <div id="quantityArea" style="display: none; background: white; border-radius: 28px; padding: 40px 30px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); margin: 20px auto; max-width: 500px; width: 90%;">
-    <h2 style="color: #1F2937; font-size: 24px; margin-bottom: 5px; font-weight: 800;">Input Quantity</h2>
-    <p style="color: #6B7280; font-size: 14px; margin-bottom: 20px;">Masukkan jumlah liter untuk unit:</p>
-    
-    <div id="targetUnitDisplay" style="background: #EFF6FF; padding: 15px; border-radius: 15px; margin-bottom: 25px;">
-        <span id="targetUnitID" style="display:block; font-weight: 800; color: #3B82F6; font-size: 22px;">-</span>
-        <span id="targetUnitSpec" style="display:block; font-weight: 500; color: #64748B; font-size: 13px; text-transform: uppercase;">-</span>
-    </div>
-    
-    <input type="number" id="literInput" inputmode="numeric" placeholder="0">
-    
-    <button onclick="submitFinalData()" class="login-btn btn-save-liter" id="saveLiterBtn" style="margin-top: 10px;">SIMPAN DATA</button>
-    
-    <div style="margin-top: 20px;">
-        <button onclick="location.reload()" style="background:none; border:none; color:#9CA3AF; cursor:pointer; font-weight:600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">BATAL / KEMBALI</button>
-    </div>
-  </div>
+
+      <div id="quantityArea" style="display: none; background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; margin-top: 0;">
+        <h2 style="color: #1F2937; font-size: 22px; margin-bottom: 5px; font-weight: 800;">INPUT DISINI</h2>
+        <p style="color: #6B7280; font-size: 14px; margin-bottom: 20px;">Masukkan jumlah liter pengisian pada unit :</p>
+        
+        <div id="targetUnitDisplay" style="background: #EFF6FF; padding: 15px; border-radius: 15px; margin-bottom: 25px; border: 1px dashed #3B82F6;">
+            <span id="targetUnitID" style="display:block; font-weight: 800; color: #3B82F6; font-size: 24px;">-</span>
+            <span id="targetUnitSpec" style="display:block; font-weight: 600; color: #64748B; font-size: 12px; text-transform: uppercase; margin-top: 4px;">-</span>
+        </div>
+        
+        <div style="display: flex; justify-content: center; width: 100%;">
+            <input type="number" id="literInput" inputmode="numeric" placeholder="0">
+        </div>
+        
+        <button onclick="submitFinalData()" class="login-btn btn-save-liter" id="saveLiterBtn" style="margin-top: 20px;">SIMPAN DATA</button>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="location.reload()" style="background:none; border:none; color:#9CA3AF; cursor:pointer; font-weight:600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">← Batal / Kembali</button>
+        </div>
+      </div>
+
+    </div> </div>
   </div>
   <div class="scanner-footer">© 2025 Refueling QR System | Logistik Hauling MACO</div>
 </div>
