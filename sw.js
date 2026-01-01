@@ -8,6 +8,7 @@ const URLS_TO_CACHE = [
   './index.html',      // File utama
   './manifest.json',   // Manifest PWA
   './PITSTOP-39.png',  // Background Image (Pastikan file ini ada!)
+  './icon-qr-refueling.png', //icon untuk aplikasinya
   
   // 🌍 EXTERNAL LIBRARY (PENTING AGAR KAMERA JALAN OFFLINE)
   'https://unpkg.com/html5-qrcode@latest',
