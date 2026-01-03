@@ -723,12 +723,6 @@ function isValidUnitFrontend(unitId) {
     console.warn(`❌ Invalid unit: ${extractedUnit} - tidak ada di database`);
     return false;
   }
-  
-  if (extractedUnit === lastCode) {
-    console.warn(`⚠️ Duplicate scan: ${extractedUnit}`);
-    return false;
-  }
-  
   return true;
 }
 
