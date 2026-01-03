@@ -616,7 +616,7 @@ const CREDS = {
 };
 
 // ✅ UPDATED URL - Apps Script V12.3
-const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbz43vMjUP6cwc3-GxL0Z2zEEpxtJPnNGFrtFUfc3WHzpqPn9CE77dA5IQ5Oav6DiFu5/exec";
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbzGqU0Ky4xDg6V2Q3NfBkRB7NbSLdECCTYhU3ZyetiaHPdbYZCdL0PNFX3IOT53PFc/exec";
 
 let user = null, line = null, qr = null, scanning = false, lastCode = null;
 let cameraFacing = "environment";
@@ -666,7 +666,7 @@ function extractUnitIdFromQR(qrData) {
 
 async function loadRefuelDatabase() {
   try {
-    // JIKA ONLINE: Download dari Server & Simpan ke HP
+    // --- SKENARIO 1: JIKA ONLINE (Download Kamus Data dari Server) ---
     if (isOnline) {
       const formData = new FormData();
       formData.append("action", "getRefuelDB");
@@ -676,25 +676,40 @@ async function loadRefuelDatabase() {
       const data = await response.json();
       
       if (data.status === 'success') {
-        const units = data.refuelDB.validUnitIds || [];
+        // PERUBAHAN UTAMA DI SINI:
+        // Kita ambil "unitDetails" (Kamus ID + Nama), bukan cuma ID saja.
+        const dictionary = data.refuelDB.unitDetails || {}; 
+        
+        // 1. Simpan Kamus Lengkap ke Memori HP (Untuk Offline Mode)
+        localStorage.setItem('unitDetailsDB', JSON.stringify(dictionary)); 
+        
+        // 2. Ambil Kunci ID-nya saja untuk Validasi Scan (Boleh/Tidak)
+        const units = Object.keys(dictionary);
         validUnitIds = new Set(units);
-        localStorage.setItem('localUnitDB', JSON.stringify(units)); // <--- SIMPAN KE HP
-        console.log(`✅ Database Online: ${units.length} unit.`);
+        
+        console.log(`✅ Database Online Terupdate: ${units.length} unit beserta speknya.`);
       }
     } 
-    // JIKA OFFLINE: Ambil dari Memori HP
+    // --- SKENARIO 2: JIKA OFFLINE (Buka Kamus dari Memori HP) ---
     else {
-      const localData = localStorage.getItem('localUnitDB');
-      if (localData) {
-        validUnitIds = new Set(JSON.parse(localData));
-        console.log(`📡 Database Offline: ${validUnitIds.size} unit.`);
+      const localDetails = localStorage.getItem('unitDetailsDB');
+      if (localDetails) {
+        const dictionary = JSON.parse(localDetails);
+        
+        // Ambil daftar ID dari kamus yang tersimpan
+        validUnitIds = new Set(Object.keys(dictionary));
+        
+        console.log(`📡 Database Offline Loaded: Siap mengenali ${validUnitIds.size} unit.`);
       }
     }
   } catch (err) {
-    console.error('Gagal load, coba ambil lokal:', err);
-    // Fallback ambil lokal jika error fetch
-    const localData = localStorage.getItem('localUnitDB');
-    if (localData) validUnitIds = new Set(JSON.parse(localData));
+    console.error('Gagal load DataBase, mencoba akses lokal:', err);
+    // Fallback darurat
+    const localDetails = localStorage.getItem('unitDetailsDB');
+    if (localDetails) {
+        const dictionary = JSON.parse(localDetails);
+        validUnitIds = new Set(Object.keys(dictionary));
+    }
   }
 }
 
@@ -1056,16 +1071,25 @@ async function processQRCode(decodedText, device, result, retryCount = 0) {
 }
 
 // Tambahkan Fungsi Kecil Ini di bawah processQRCode
+
 function processOfflineSuccess(qrText, result) {
-    const unitId = extractUnitNumber(qrText);
+    const unitId = extractUnitNumber(qrText); // Misal dapat "DT030-0123"
+    
+    // 1. Buka Kamus Data di HP
+    const localDB = JSON.parse(localStorage.getItem('unitDetailsDB') || '{}');
+    
+    // 2. Cari Namanya (Kalau tidak ada, pakai default strip "-")
+    const unitNameFromDB = localDB[unitId] || "UNIT TERDAFTAR (OFFLINE)";
+
     const fakeData = {
         refuelingStatus: "ALLOWED",
         unitId: unitId,
-        unitName: "OFFLINE MODE", 
+        unitName: unitNameFromDB, // <--- INI DIA RAHASIANYA
         minutesRemaining: 0
     };
+    
     result.innerHTML = `<span class="result-status"><span class="result-status-icon">📡</span> Offline Mode</span>`;
-    speak("Mode offline. Silakan input liter.");
+    speak("Mode offline. Unit dikenali.");
     handleScanSuccess(fakeData, qrText, result);
 }
 
