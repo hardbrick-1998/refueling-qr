@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>BARCODE REFUELING MACO HAULING - Version 19.0</title>
+    <title>BARCODE REFUELING MACO HAULING - Version 20.0</title>
   
   <!-- 🔗 PWA MANIFEST LINK -->
   <link rel="manifest" href="manifest.json">
@@ -615,8 +615,8 @@ const CREDS = {
   "bays 3": { pwd: "12345", line: "C" }
 };
 
-// ✅ UPDATED URL - Apps Script V12.3
-const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbzGqU0Ky4xDg6V2Q3NfBkRB7NbSLdECCTYhU3ZyetiaHPdbYZCdL0PNFX3IOT53PFc/exec";
+// ✅ UPDATED URL - Apps Script V20.0
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxT4R4mPTJejxb8vJiHIMDgU-j9cwZ0f6Adzy83xgGDEVIGrqnFU50naTC_5LoD0beI/exec";
 
 let user = null, line = null, qr = null, scanning = false, lastCode = null;
 let cameraFacing = "environment";
@@ -1024,11 +1024,16 @@ async function onScan(decodedText) {
   // 🔥 3. (BARU) CEK HISTORY LOKAL (OFFLINE GUARD) 🔥
   const localCheck = checkLocalHistoryAllowed(extractedUnit);
   
-  if (!localCheck.allowed) {
+ if (!localCheck.allowed) {
       // JIKA DITOLAK OLEH HP (Belum 8 Jam)
       const sisaWaktu = toHourMinute(localCheck.minutesRemaining);
       const jamTerakhir = localCheck.lastTime.getHours().toString().padStart(2, '0') + ":" + localCheck.lastTime.getMinutes().toString().padStart(2, '0');
       
+      // 🔥 INI BARIS BARU YANG WAJIB DITAMBAHKAN 🔥
+      // Fungsinya: Simpan laporan "Ditolak" ke antrean upload
+      queueOfflineRejection(extractedUnit, "INTERVAL BELUM TERCAPAI (OFFLINE)"); 
+      // ----------------------------------------------------
+
       result.className = "status-disallowed";
       result.innerHTML = `
         <span class="result-status">
@@ -1331,71 +1336,113 @@ async function submitFinalData() {
   }
 }
 
-// 🔥 5. FUNGSI SINKRONISASI DATA (Upload Otomatis)
-async function uploadPendingData() {
-    // 1. Cek apakah ada data di "Tabungan" HP
-    let queue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
+  // 🔥 5. FUNGSI SINKRONISASI DATA (Upload Otomatis)
+// ==========================================
+// 🔄 FUNGSI SINKRONISASI (DATA LITER + LAPORAN PENOLAKAN)
+// ==========================================
+  async function uploadPendingData() {
+    // 1. Ambil Antrean Data SUKSES (Refuel Liter)
+    let refuelQueue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
     
-    // Jika kosong, berhenti (tidak ada yg perlu diupload)
-    if (queue.length === 0) return;
+    // 2. Ambil Antrean Data GAGAL/DITOLAK (Laporan WA) - 🔥 BAGIAN BARU
+    let rejectQueue = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
 
-    // 2. Ubah Banner jadi Info Upload (Warna Biru)
+    // Jika kedua antrean kosong, tidak perlu kerja
+    if (refuelQueue.length === 0 && rejectQueue.length === 0) return;
+
+    // 3. Update Banner Biru (Info Upload)
     const banner = document.getElementById('offlineBanner');
-    banner.textContent = `🔄 Sedang mengupload ${queue.length} data tertunda...`;
     banner.classList.add('show');
+    // Tampilkan detail jumlah data yang mau dikirim
+    banner.textContent = `🔄 Sinkronisasi: ${refuelQueue.length} Refuel + ${rejectQueue.length} Laporan...`;
     banner.style.backgroundColor = "#DBEAFE"; // Biru Muda
     banner.style.color = "#1E40AF";           // Biru Tua
 
-    let failedQueue = []; // Wadah untuk data yang (masih) gagal terkirim
+    // ==========================================
+    // PROSES 1: KIRIM DATA REFUEL (Input Liter)
+    // ==========================================
+    let failedRefuels = []; // Wadah sisa jika gagal lagi
 
-    // 3. Loop: Kirim satu per satu
-    for (const item of queue) {
+    for (const item of refuelQueue) {
         try {
             const formData = new FormData();
             formData.append("action", "submitRefuel");
             formData.append("unitId", item.unitId);
             formData.append("liter", item.liter);
             formData.append("line", item.line);
-            // Tambahkan tanda bahwa ini data hasil sync
             formData.append("device", "Mobile (Synced)"); 
-            // Opsional: Kirim timestamp asli saat scan (agar laporan akurat)
-            // formData.append("timestamp", item.timestamp); 
+            
+            // Opsional: Jika ingin mengirim jam asli scan (bukan jam sync)
+            if(item.timestamp) {
+                 formData.append("originalTime", item.timestamp);
+            }
 
             await fetch(apiUrl, { method: "POST", body: formData });
-            console.log(`✅ Synced: ${item.unitId}`);
+            console.log(`✅ Refuel Synced: ${item.unitId}`);
             
         } catch (err) {
-            console.error(`❌ Gagal sync unit ${item.unitId}:`, err);
-            // Jika gagal lagi (misal sinyal putus nyambung), masukkan kembali ke antrean
-            failedQueue.push(item); 
+            console.error(`❌ Gagal sync refuel ${item.unitId}:`, err);
+            failedRefuels.push(item); // Masukkan kembali ke antrean
         }
     }
+    // Simpan sisa refuel yang gagal ke memori HP
+    localStorage.setItem('pendingRefuels', JSON.stringify(failedRefuels));
 
-    // 4. Simpan sisa yang gagal (jika ada) kembali ke memori HP
-    localStorage.setItem('pendingRefuels', JSON.stringify(failedQueue));
 
-    // 5. Update Status Banner
-    if (failedQueue.length === 0) {
+    // ==========================================
+    // PROSES 2: KIRIM LAPORAN PENOLAKAN (WA) 🔥
+    // ==========================================
+    let failedRejections = []; // Wadah sisa laporan gagal
+
+    for (const item of rejectQueue) {
+        try {
+            const formData = new FormData();
+            // Perhatikan actionnya beda: "reportOfflineRejection"
+            formData.append("action", "reportOfflineRejection"); 
+            formData.append("unitId", item.unitId);
+            formData.append("line", item.line);
+            formData.append("timestamp", item.timestamp); // Wajib kirim jam kejadian asli!
+
+            await fetch(apiUrl, { method: "POST", body: formData });
+            console.log(`✅ Laporan Penolakan Synced: ${item.unitId}`);
+
+        } catch (err) {
+            console.error(`❌ Gagal sync laporan ${item.unitId}:`, err);
+            failedRejections.push(item); // Masukkan kembali ke antrean
+        }
+    }
+    // Simpan sisa laporan yang gagal ke memori HP
+    localStorage.setItem('pendingRejections', JSON.stringify(failedRejections));
+
+
+    // ==========================================
+    // FINAL: CEK HASIL & UPDATE BANNER
+    // ==========================================
+    const totalSisa = failedRefuels.length + failedRejections.length;
+
+    if (totalSisa === 0) {
         // SUKSES SEMUA
-        banner.textContent = "✅ Semua data offline berhasil terkirim!";
+        banner.textContent = "✅ Semua data & laporan offline terkirim!";
         banner.style.backgroundColor = "#D1FAE5"; // Hijau Muda
         banner.style.color = "#065F46";           // Hijau Tua
         
         // Hilangkan banner setelah 3 detik
         setTimeout(() => {
             banner.classList.remove('show');
-            // Reset ke tampilan default offline (Kuning)
+            // Reset tampilan ke default offline
             banner.textContent = "📡 Mode Offline - Data disimpan lokal";
             banner.style.backgroundColor = "#FEF3C7"; 
             banner.style.color = "#92400E";
         }, 3000);
+
     } else {
         // MASIH ADA SISA
-        banner.textContent = `⚠️ Sisa ${failedQueue.length} data belum terkirim. Coba cari sinyal lebih kuat.`;
+        banner.textContent = `⚠️ Sisa ${totalSisa} data belum terkirim. Coba cari sinyal kuat.`;
         banner.style.backgroundColor = "#FEE2E2"; // Merah Muda
         banner.style.color = "#991B1B";
     }
 }
+
 
 // ==========================================
 // 🧠 FITUR OFFLINE: CEK INTERVAL 8 JAM (LOCAL MEMORY)
@@ -1409,7 +1456,7 @@ function saveLocalHistory(unitId) {
     console.log(`💾 History tersimpan lokal untuk: ${unitId}`);
 }
 
-function checkLocalHistoryAllowed(unitId) {
+  function checkLocalHistoryAllowed(unitId) {
     let history = JSON.parse(localStorage.getItem('unitHistory') || '{}');
     const lastRefuel = history[unitId];
 
@@ -1432,6 +1479,26 @@ function checkLocalHistoryAllowed(unitId) {
 
     return { allowed: true };
 }
+
+  // ==========================================
+  // 📝 FUNGSI CATAT PENOLAKAN KE MEMORI HP
+  // ==========================================
+  function queueOfflineRejection(unitId, reason) {
+    // 1. Ambil daftar laporan yang sudah ada (kalau ada)
+    let rejections = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
+    
+    // 2. Tambahkan laporan baru ke tumpukan
+    rejections.push({
+        unitId: unitId,
+        line: user, // Mengambil variabel global 'user' (Bays 1/2/3)
+        timestamp: new Date().getTime(), // Catat jam kejadian (bukan jam kirim)
+        reason: reason
+    });
+    
+    // 3. Simpan kembali ke memori HP
+    localStorage.setItem('pendingRejections', JSON.stringify(rejections));
+    console.log(`📝 Laporan penolakan disimpan lokal untuk: ${unitId}`);
+  }
 
 </script>
 
