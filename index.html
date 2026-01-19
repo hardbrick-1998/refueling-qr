@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>BARCODE REFUELING MACO HAULING - Version 20.0</title>
+    <title>BARCODE REFUELING MACO HAULING - BETA VERSION</title>
   
   <!-- 🔗 PWA MANIFEST LINK -->
   <link rel="manifest" href="manifest.json">
@@ -14,12 +14,43 @@
   <meta name="apple-mobile-web-app-title" content="QR Scan">
 
   <script src="https://unpkg.com/html5-qrcode@latest"></script>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+   <style>
+    /* --- PALET WARNA CYBERPUNK --- */
+    :root {
+      --neon-blue: #00f3ff;
+      --neon-green: #0aff68;
+      --neon-red: #ff0055;
+      --dark-bg: #050b14;
+      --glass-bg: rgba(12, 24, 40, 0.92); /* Lebih gelap dikit biar teks jelas */
+      --border-color: rgba(0, 243, 255, 0.5);
+      --text-main: #e0f2fe;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; }
+    
+    body { 
+      font-family: 'Rajdhani', sans-serif; 
+      background-color: var(--dark-bg);
+      background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.9)), url('PITSTOP-39.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: var(--text-main);
+      overflow-x: hidden;
+      line-height: 1.5; /* Jarak antar baris lebih lega */
+    }
+
+    /* --- ANIMASI --- */
+    @keyframes scanline {
+      0% { top: 0%; opacity: 0; }
+      20% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
     
     @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
     @keyframes slideUpFadeIn {
@@ -29,493 +60,518 @@
     
     .fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
     .slide-up-fade-in { animation: slideUpFadeIn 0.5s ease-out forwards; }
-    
+
+    /* --- LOGIN PAGE --- */
     #loginPage {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      /* --- BACKGROUND BARU --- */
-      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('PITSTOP-39.png');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      /* ----------------------- */
-      padding: 20px;
-      opacity: 1;
-      transition: opacity 0.5s ease-in-out;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
     }
     
-    .login-container { width: 100%; max-width: 420px; }
+    .login-container { width: 100%; max-width: 480px; } /* Diperlebar sedikit */
+
     .login-box {
-      background: white;
-      border-radius: 28px;
-      padding: 50px 35px 40px;
-      box-shadow: 0 12px 50px rgba(0,0,0,0.08);
+      background: var(--glass-bg);
+      border: 2px solid var(--border-color); /* Border lebih tebal */
+      border-radius: 20px;
+      padding: 50px 30px;
+      box-shadow: 0 0 40px rgba(0, 243, 255, 0.15);
       text-align: center;
+      position: relative;
+      backdrop-filter: blur(15px);
     }
-    
-    .logo-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 20px;
+
+    /* Garis Hiasan Atas */
+    .login-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+      box-shadow: 0 0 15px var(--neon-blue);
     }
-    
+
+    .main-site-title {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--neon-blue);
+      text-align: center;
+      font-size: 32px; /* DIPERBESAR */
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 20px var(--neon-blue);
+      line-height: 1.2;
+    }
+
     .logo-header img {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
+      width: 70px; height: 70px; /* Logo lebih besar */
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.6));
+      margin-bottom: 10px;
     }
-    
+
     .login-box h1 {
-      font-size: 28px;
-      color: #1F2937;
-      font-weight: 700;
-      margin-bottom: 12px;
-      letter-spacing: -0.5px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
     }
+
+    .login-box p { color: #94a3b8; font-size: 15px; margin-bottom: 30px; font-weight: 500; }
+
+    /* --- INPUT FIELDS (LOGIN) --- */
+    .form-group { margin-bottom: 25px; text-align: left; }
     
-    .login-box p {
-      color: #6B7280;
-      font-size: 14px;
-      margin-bottom: 32px;
-      line-height: 1.6;
-      font-weight: 400;
-    }
-    
-    .form-group {
-      margin-bottom: 18px;
-      text-align: left;
-    }
-    
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      color: #374151;
-      font-weight: 600;
+    .form-group label { 
+      color: var(--neon-blue); 
+      font-weight: 700; 
+      letter-spacing: 1px; 
+      font-size: 16px; /* Label lebih besar */
       margin-bottom: 8px;
-      letter-spacing: 0.3px;
+      display: block;
+      text-transform: uppercase;
     }
-    
-    .form-group select,
-    .form-group input {
+
+    .form-group select, .form-group input {
       width: 100%;
-      padding: 12px 14px;
-      border: 1.5px solid #E5E7EB;
-      border-radius: 16px;
-      font-size: 14px;
-      font-family: 'Inter', sans-serif;
-      transition: all 0.3s ease;
-      background: #F9FAFB;
-      color: #1F2937;
+      background: rgba(0, 0, 0, 0.6) !important;
+      border: 2px solid rgba(255, 255, 255, 0.2) !important;
+      color: #fff !important;
+      font-family: 'Orbitron', sans-serif;
+      padding: 16px; /* Padding lebih lega */
+      font-size: 18px !important; /* Teks input besar */
+      border-radius: 12px !important;
+      transition: 0.3s;
     }
-    
-    .form-group select {
-      background: #F9FAFB url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231F2937' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;
-      padding-right: 40px;
-      appearance: none;
-      cursor: pointer;
-    }
-    
-    .form-group select:hover,
-    .form-group input:hover {
-      border-color: #D1D5DB;
-      background-color: #FAFBFC;
-    }
-    
-    .form-group select:focus,
-    .form-group input:focus {
+
+    .form-group select:focus, .form-group input:focus {
+      border-color: var(--neon-blue) !important;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
       outline: none;
-      border-color: #3B82F6;
-      background-color: white;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      background: rgba(0, 0, 0, 0.8) !important;
     }
-    
-    .form-group select:focus {
-      background-color: white;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%233B82F6' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-      background-position: right 14px center;
-      background-repeat: no-repeat;
-    }
-    
-    .form-group input::placeholder { color: #9CA3AF; }
-    .form-group select option { background: white; color: #1F2937; padding: 10px; }
-    
-    .error-box {
-      display: none;
-      background: #FEE2E2;
-      color: #991B1B;
-      padding: 12px 14px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      font-size: 13px;
-      border-left: 4px solid #DC2626;
-      font-weight: 500;
-    }
-    
+
+    /* --- TOMBOL UTAMA --- */
     .login-btn {
       width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: all 0.3s ease;
+      background: linear-gradient(180deg, rgba(0,243,255,0.15), rgba(0,243,255,0.05)) !important;
+      border: 2px solid var(--neon-blue) !important;
+      color: var(--neon-blue) !important;
+      font-family: 'Orbitron', sans-serif;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    .login-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    }
-    
-    .login-btn:active { transform: translateY(0); }
-    .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    
-    .login-footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 12px;
-      color: #9CA3AF;
-      font-weight: 500;
-    }
-    
-    #scannerPage {
-      display: none;
-      min-height: 100vh;
-      /* --- BACKGROUND BARU UNTUK SCANNER --- */
-      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('PITSTOP-39.png');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      /* ------------------------------------ */
-  
-      color: #1F2937;
-      flex-direction: column;
-      opacity: 0;
-      transition: opacity 0.5s ease-out;
-    }
-    
-    #scannerPage.active { opacity: 1; }
-    
-    .scanner-header {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(12px);
-      padding: 18px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    
-    .scanner-header h1 {
+      letter-spacing: 3px;
+      font-weight: 800;
+      padding: 18px; /* Tombol tebal */
       font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      color: #1F2937;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,243,255,0.2);
+      transition: all 0.3s;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .login-btn:hover {
+      background: var(--neon-blue) !important;
+      color: #000 !important;
+      box-shadow: 0 0 35px var(--neon-blue);
+      transform: translateY(-2px);
     }
     
-    .header-info {
-      display: flex;
-      gap: 12px;
-      align-items: center;
+    .login-footer { color: #64748b; margin-top: 30px; font-size: 12px; letter-spacing: 1px; }
+
+    /* --- SCANNER PAGE --- */
+    #scannerPage {
+      display: none; min-height: 100vh;
+      background: transparent;
+      flex-direction: column;
+      opacity: 0; transition: opacity 0.5s ease-out;
     }
-    
+    #scannerPage.active { opacity: 1; }
+
+    .scanner-header {
+      background: rgba(5, 11, 20, 0.95);
+      border-bottom: 2px solid var(--border-color);
+      padding: 20px 25px;
+      display: flex; justify-content: space-between; align-items: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .scanner-header h1 { color: #fff; font-family: 'Orbitron'; font-size: 22px; font-weight: 800; }
+
     .user-badge {
-      background: rgba(59, 130, 246, 0.15);
-      color: #1e40af;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 12px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid var(--neon-blue);
+      color: var(--neon-blue);
+      font-family: 'Orbitron';
+      letter-spacing: 1px;
+      padding: 8px 15px;
       font-weight: 700;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      letter-spacing: 0.3px;
+      border-radius: 8px;
     }
-    
+
     .logout-btn {
-      background: linear-gradient(135deg, #DC2626, #B91C1C);
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 12px;
+      background: rgba(255, 0, 85, 0.2);
+      border: 1px solid var(--neon-red);
+      color: var(--neon-red);
+      font-family: 'Orbitron';
+      padding: 8px 15px;
+      border-radius: 8px;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s ease;
-      letter-spacing: 0.3px;
     }
-    
-    .logout-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    }
-    
-    .scanner-content {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-    }
-    
-    .scanner-main { width: 100%; max-width: 460px; }
-    
+
+    .scanner-content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .scanner-main { width: 100%; max-width: 500px; } /* Lebar area scan ditambah */
+
+    /* --- KOTAK QR CODE --- */
     .qr-display-area {
-      background: white;
-      border-radius: 20px;
-      padding: 28px;
-      text-align: center;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-      border: 1px solid rgba(0,0,0,0.05);
+      background: var(--glass-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.6);
     }
-    
-    .qr-display-area h2 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 22px;
-      color: #1F2937;
-      letter-spacing: 0.3px;
+
+    .qr-display-area h2 { 
+      color: #fff; font-family: 'Orbitron'; margin-bottom: 20px; font-size: 20px; 
+      text-transform: uppercase; letter-spacing: 2px;
     }
-    
+
+    /* --- WRAPPER KAMERA (FRAME) --- */
     .qr-reader-wrapper {
       position: relative;
-      margin-bottom: 18px;
-    }
-    
-    #qr-reader {
-      width: 100%;
-      aspect-ratio: 1;
+      border: 3px solid var(--border-color);
       border-radius: 16px;
-      border: 2px solid #E5E7EB;
-      background: linear-gradient(135deg, #F3F4F6, #F9FAFB);
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: border-color 0.3s ease;
+      overflow: hidden; 
+      box-shadow: 0 0 25px rgba(0, 243, 255, 0.15);
+      background: #000; 
+      /* Memastikan wrapper punya tinggi saat loading */
+      min-height: 250px; 
     }
-    
-    #qr-reader:hover { border-color: #D1D5DB; }
-    
+
+    /* --- GARIS LASER MERAH (PERBAIKAN VISIBILITY) --- */
+    .qr-reader-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0; 
+      width: 100%; 
+      height: 4px; /* Laser lebih tebal sedikit */
+      
+      /* Warna Merah Solid + Glow (Biar pasti kelihatan) */
+      background: var(--neon-red);
+      box-shadow: 0 0 20px var(--neon-red), 0 0 40px var(--neon-red);
+      
+      /* Animasi Turun Naik */
+      animation: scanline 2s infinite linear;
+      
+      /* KUNCI PERBAIKAN: Z-Index Tinggi & Pointer Events */
+      z-index: 999; 
+      pointer-events: none;
+    }
+
+    /* Video dari library kadang menutupi, kita paksa di bawah */
+    #qr-reader video {
+        object-fit: cover;
+        z-index: 1;
+    }
+
+    #qr-reader { border: none; background: #000; }
+
     .camera-toggle-btn {
       position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: white;
-      border: 1.5px solid #E5E7EB;
-      color: #1F2937;
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      bottom: 20px;
+      right: 20px;
+      
+      width: 50px; height: 50px; /* Ukuran Bola */
+      border-radius: 50%; /* Membuat jadi Bulat Sempurna */
+      
+      background: rgba(0, 0, 0, 0.6); /* Transparan Gelap */
+      border: 2px solid var(--border-color); /* Garis Neon Biru */
+      color: var(--neon-blue);
+      
+      display: flex; justify-content: center; align-items: center;
+      font-size: 24px; /* Ukuran Ikon Kamera */
       cursor: pointer;
-      font-size: 18px;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 10;
+      z-index: 20; /* Agar di atas video kamera */
+      
+      backdrop-filter: blur(5px);
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      transition: all 0.4s ease;
     }
-    
+
+    /* Efek saat Hover (Disentuh) */
     .camera-toggle-btn:hover {
-      background: #F3F4F6;
-      border-color: #3B82F6;
-      color: #3B82F6;
-      transform: scale(1.08);
+      background: var(--neon-blue);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 0 25px var(--neon-blue);
+      transform: rotate(180deg) scale(1.1); /* Animasi Putar & Membesar */
     }
-    
-    .camera-toggle-btn:active { transform: scale(0.95); }
-    
+
+    /* --- HASIL SCAN --- */
     #result {
-      background: white;
-      color: #1F2937;
-      padding: 14px 16px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #555;
+      color: #fff;
+      font-family: 'Rajdhani';
+      font-size: 18px; /* Teks hasil lebih besar */
+      margin-top: 20px;
+      padding: 15px;
       border-radius: 12px;
-      font-size: 13px;
-      line-height: 1.5;
-      min-height: 45px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 18px;
       font-weight: 600;
-      text-align: center;
-      border: 1.5px solid #E5E7EB;
     }
-    
-    #result.status-disallowed {
-      background: #FEF2F2;
-      border-color: #FECACA;
-      color: #991B1B;
-    }
-    
+
     #result.status-allowed {
-      background: #F0FDF4;
-      border-color: #BBFBBB;
-      color: #166534;
+      background: rgba(10, 255, 104, 0.2);
+      border: 2px solid var(--neon-green);
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
     }
-    
-    #result.status-error {
-      background: #FEF3C7;
-      border-color: #FDE68A;
-      color: #92400E;
+
+    #result.status-disallowed {
+      background: rgba(255, 0, 85, 0.2);
+      border: 2px solid var(--neon-red);
+      color: var(--neon-red);
+      text-shadow: 0 0 10px var(--neon-red);
     }
-    
-    #result.status-invalid {
-      background: #FEE2E2;
-      border-color: #FECACA;
-      color: #991B1B;
-    }
-    
-    .result-status {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      justify-content: center;
-    }
-    
-    .result-status-icon { font-size: 20px; }
-    .result-unit { font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
-    .result-time { font-size: 11px; font-weight: 500; opacity: 0.8; }
-    .result-remain { font-size: 11px; font-weight: 500; opacity: 0.8; margin-top: 3px; }
-    
+
+    /* --- POSISI TOMBOL (DI TENGAH) --- */
     .action-btns {
       display: flex;
-      gap: 14px;
-      justify-content: center;
-    }
-    
-    .action-btns button {
-      width: 54px;
-      height: 54px;
-      border-radius: 14px;
-      border: none;
-      cursor: pointer;
-      font-size: 22px;
-      transition: all 0.3s ease;
-      display: flex;
+      gap: 25px; /* Jarak antar tombol Play & Stop */
+      justify-content: center; /* <--- INI KUNCI BIAR DI TENGAH */
       align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    .action-btns button {
+      width: 70px; height: 70px; /* Ukuran tombol mantap */
+      font-size: 30px; 
+      border-radius: 50%; /* Dibuat Bulat biar lebih modern */
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efek membal saat ditekan */
+    }
+
+    /* --- INPUT QUANTITY AREA --- */
+    #quantityArea {
+      background: var(--glass-bg) !important;
+      border: 2px solid var(--border-color);
+      border-radius: 24px !important;
+      color: #fff;
+      padding: 40px 25px !important;
+    }
+
+    #quantityArea h2 { 
+      color: var(--neon-blue) !important; 
+      font-family: 'Orbitron'; 
+      font-size: 24px !important;
+      text-shadow: 0 0 15px var(--neon-blue);
+      margin-bottom: 15px !important;
     }
     
+    #quantityArea p { color: #cbd5e1 !important; font-size: 16px !important; margin-bottom: 30px !important; }
+
+    #targetUnitDisplay {
+      background: rgba(0, 243, 255, 0.05) !important;
+      border: 2px dashed var(--neon-blue) !important;
+      border-radius: 16px !important;
+      padding: 20px !important;
+      margin-bottom: 30px !important;
+    }
+
+    #targetUnitID { 
+      color: var(--neon-blue) !important; 
+      font-family: 'Orbitron'; 
+      font-size: 42px !important; /* UNIT ID RAKSASA */
+      font-weight: 900 !important;
+      text-shadow: 0 0 20px var(--neon-blue);
+    }
+    
+    #targetUnitSpec { color: #fff !important; opacity: 0.9; font-size: 14px !important; letter-spacing: 1px; }
+
+    /* --- INPUT LITER & HM BESAR (SUPER JELAS) --- */
+    #literInput, #hmInput {
+      background: #000 !important;
+      border: 3px solid var(--border-color) !important;
+      color: var(--neon-blue) !important;
+      font-family: 'Orbitron';
+      font-size: 50px !important; /* INPUT RAKSASA */
+      height: 90px !important;
+      text-shadow: 0 0 10px var(--neon-blue);
+      border-radius: 16px !important;
+      margin-top: 5px;
+    }
+    
+    #literInput:focus, #hmInput:focus {
+      border-color: var(--neon-blue) !important;
+      box-shadow: 0 0 30px rgba(0, 243, 255, 0.5) !important;
+    }
+    
+    /* Label Input Khusus */
+    #quantityArea label {
+        font-size: 16px !important;
+        letter-spacing: 1px;
+        color: #fff !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* --- TOMBOL SIMPAN --- */
+    .btn-save-liter {
+      background: linear-gradient(135deg, var(--neon-green), #059669) !important;
+      color: #000 !important;
+      font-family: 'Orbitron';
+      font-size: 22px !important; /* Teks tombol simpan besar */
+      font-weight: 800 !important;
+      letter-spacing: 2px;
+      box-shadow: 0 0 20px var(--neon-green);
+      border: none !important;
+      padding: 20px !important;
+      border-radius: 16px !important;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    .btn-save-liter:hover {
+      box-shadow: 0 0 40px var(--neon-green);
+      transform: scale(1.02);
+    }
+    
+    /* Tombol Batal */
+    button[onclick="location.reload()"] {
+        background: rgba(220, 38, 38, 0.2) !important;
+        border: 2px solid var(--neon-red) !important;
+        color: var(--neon-red) !important;
+        font-size: 16px !important;
+        padding: 15px !important;
+        border-radius: 12px !important;
+        text-transform: uppercase;
+        font-family: 'Orbitron';
+        letter-spacing: 1px;
+    }
+
+    /* --- TOMBOL START/STOP --- */
+    /* --- TOMBOL PLAY (SEGITIGA HIJAU) --- */
     #startBtn {
-      background: linear-gradient(135deg, #3B82F6, #2563EB);
-      color: white;
+      background: rgba(10, 255, 104, 0.15) !important; /* Hijau Transparan */
+      border: 3px solid var(--neon-green) !important;   /* Garis Hijau */
+      color: var(--neon-green) !important;              /* Ikon Segitiga Hijau */
+      box-shadow: 0 0 20px rgba(10, 255, 104, 0.2);     /* Cahaya Hijau Halus */
     }
-    
+
     #startBtn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      background: var(--neon-green) !important;         /* Hijau Penuh saat disentuh */
+      color: #000 !important;                           /* Ikon jadi hitam */
+      box-shadow: 0 0 40px var(--neon-green);           /* Cahaya makin terang */
+      transform: scale(1.15);                           /* Membesar sedikit */
     }
-    
-    #startBtn:active { transform: scale(0.95); }
-    
+
+    /* --- TOMBOL STOP (KOTAK MERAH) - Biar seimbang --- */
     #stopBtn {
-      background: white;
-      color: #DC2626;
-      border: 2px solid #DC2626;
+      background: rgba(255, 0, 85, 0.15) !important;
+      border: 3px solid var(--neon-red) !important;
+      color: var(--neon-red) !important;
+      box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
     }
-    
+
     #stopBtn:hover {
-      background: rgba(220, 38, 38, 0.1);
-      transform: scale(1.08);
+      background: var(--neon-red) !important;
+      color: #000 !important;
+      box-shadow: 0 0 40px var(--neon-red);
+      transform: scale(1.15);
     }
-    
-    .scanner-footer {
-      background: rgba(255, 255, 255, 0.5);
-      padding: 16px;
-      text-align: center;
-      font-size: 12px;
-      color: #6B7280;
-      border-top: 1px solid rgba(0, 0, 0, 0.05);
-      font-weight: 500;
-      letter-spacing: 0.2px;
-    }
-    
+
+    /* --- BANNER OFFLINE (FIXED VERSION) --- */
     .offline-banner {
-      display: none;
-      background: #FEF3C7;
-      color: #92400E;
-      padding: 12px;
+      display: none; 
+      background: #000;
+      color: var(--neon-red);
+      border-bottom: 3px solid var(--neon-red);
+      font-family: 'Orbitron', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 15px;
       text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      border-bottom: 2px solid #FDE68A;
+      font-size: 14px;
+      font-weight: 900;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 5px 20px rgba(255, 0, 85, 0.4);
     }
     
     .offline-banner.show { display: block; }
     
-    /* Paste di baris kosong sebelum @media */
-    .main-site-title {
-    font-family: 'Poppins', sans-serif;
-    color: #FFFFFF;
-    text-align: center;
-    font-size: 36px; /* Ukuran besar untuk PC */
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 100px;
-    text-shadow: 2px 4px 12px rgba(0, 0, 0, 0.9); /* Bayangan agar teks tajam */
-    animation: slideUpFadeIn 0.8s ease-out forwards;
-}
+    .scanner-footer {
+      background: rgba(0,0,0,0.9);
+      color: #666;
+      border-top: 1px solid #333;
+      padding: 20px;
+      font-size: 13px;
+    }
 
+    /* --- RESPONSIVE MOBILE (AGAR TIDAK PECAH DI HP) --- */
     @media (max-width: 480px) {
-      .main-site-title {
-      font-size: 20px; /* Ukuran lebih kecil khusus HP */
-      letter-spacing: 1px;
-      margin-bottom: 15px;}
-      .login-box { padding: 35px 20px 30px; border-radius: 24px; }
-      .logo-header img { width: 45px; height: 45px; }
-      .login-box h1 { font-size: 24px; }
-      .scanner-header { flex-wrap: wrap; gap: 10px; }
-      .scanner-main { max-width: 100%; }
-      .scanner-content { padding: 20px 15px; }
-      .qr-display-area { padding: 18px; }
-      .action-btns button { width: 50px; height: 50px; font-size: 20px; }
-    }
-    
-    /* Style untuk Input Quantity Liter */
-    #literInput {
-      width: 100%;
-      max-width: 300px; /* Membatasi lebar agar tetap proporsional */
-      height: 80px;
-      font-size: 40px;
-      font-weight: 800;
-      text-align: center;
-      border: 3px solid #1F2937; /* Disesuaikan agar lebih kontras */
-      border-radius: 20px;
-      margin: 15px auto; /* Membuatnya otomatis ke tengah */
-      display: block; /* Penting agar margin auto berfungsi */
-      color: #1F2937;
-      background-color: #F9FAFB;
+      .main-site-title { font-size: 22px; margin-bottom: 25px; }
+      .login-box { padding: 40px 20px; }
+      .form-group input, .form-group select { font-size: 16px !important; padding: 14px; }
+      
+      #literInput, #hmInput { 
+          font-size: 40px !important; /* Tetap besar tapi pas di HP */
+          height: 80px !important; 
+          width: 100% !important;
+      }
+      
+      /* --- REVISI HEADER MOJOK KANAN --- */
+      .scanner-header { 
+          display: flex;
+          justify-content: space-between; /* Pisahkan Kiri (Judul) dan Kanan (Info) sejauh mungkin */
+          align-items: center;
+          padding: 15px 20px; /* Tambah padding dikit biar ga nempel layar */
+      }
+
+      /* Tampilkan judul "QR Scan" tapi kecil saja sebagai penyeimbang di Kiri */
+      .scanner-header h1 { 
+          display: block !important; 
+          font-size: 16px; 
+          margin: 0;
+      } 
+      
+      /* Area Kanan (Bays & Logout) */
+      .header-info {
+          display: flex;
+          flex-direction: column; /* Susun Atas-Bawah biar rapi */
+          align-items: flex-end;  /* Rata Kanan MENTOK */
+          gap: 6px; /* Jarak antara badge dan tombol */
+      }
+      
+      /* Kecilkan dikit font badge di HP */
+      .user-badge { 
+          font-size: 12px; 
+          padding: 4px 10px; 
+      }
+      
+      .logout-btn {
+          font-size: 11px;
+          padding: 4px 10px;
+      }
+
+      .qr-display-area { padding: 20px; }
+      #targetUnitID { font-size: 32px !important; }
     }
 
-    .btn-save-liter {
-      background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
-      font-size: 18px !important;
-      height: 55px;
-      width: 100%;
-      border-radius: 12px;
-      color: white;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
+    /* --- STATUS SUKSES UPLOAD OFFLINE --- */
+    .offline-banner.success-sync {
+      background: rgba(10, 255, 104, 0.15) !important; /* Latar Hijau Transparan */
+      border-bottom: 3px solid var(--neon-green) !important; /* Garis Bawah Hijau */
+      color: var(--neon-green) !important; /* Teks Hijau */
+      box-shadow: 0 5px 20px rgba(10, 255, 104, 0.3); /* Cahaya Hijau */
+      animation: slideDown 0.5s ease-out;
     }
 
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
+
 </head>
 <body>
 
@@ -544,7 +600,7 @@
           <label>🔑 Password</label>
           <input type="password" id="pwd" placeholder="Masukkan password" required>
         </div>
-        <button type="submit" class="login-btn" id="loginBtn">Get Started</button>
+        <button type="submit" class="login-btn" id="loginBtn">LOGIN</button>
       </form>
       <div class="login-footer">Design by FOG HAULING MACO</div>
     </div>
@@ -573,30 +629,61 @@
         </div>
       </div>
 
-      <div id="quantityArea" style="display: none; background: white; border-radius: 24px; padding: 25px 20px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; margin: 0 auto; box-sizing: border-box;">
+        <div id="quantityArea" style="display: none; background: white; border-radius: 24px; padding: 30px 15px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; margin: 0 auto; box-sizing: border-box;">
         
-        <h2 style="color: #1F2937; font-size: 20px; margin-bottom: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">INPUT JUMLAH LITER</h2>
-        
-        <p style="color: #6B7280; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">Masukkan jumlah liter pengisian pada unit :</p>
-        
-        <div id="targetUnitDisplay" style="background: #EFF6FF; padding: 15px; border-radius: 16px; margin-bottom: 25px; border: 2px dashed #BFDBFE;">
-            <span id="targetUnitID" style="display:block; font-weight: 800; color: #1D4ED8; font-size: 26px; letter-spacing: 1px;">-</span>
-            <span id="targetUnitSpec" style="display:block; font-weight: 600; color: #64748B; font-size: 12px; text-transform: uppercase; margin-top: 5px;">-</span>
-        </div>
-        
-        <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 10px;">
-            <input type="number" id="literInput" inputmode="numeric" placeholder="0" style="text-align: center;">
-        </div>
-        
-        <button onclick="submitFinalData()" class="login-btn btn-save-liter" id="saveLiterBtn" style="margin-top: 15px; width: 100%; height: 55px; font-size: 18px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">SIMPAN DATA</button>
-        
-        <div style="margin-top: 15px;">
-            <button onclick="location.reload()" style="background-color: #EF4444; color: white; border: none; border-radius: 12px; width: 100%; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); transition: all 0.2s;">
-                ❌ BATAL / KEMBALI
-            </button>
+    <p style="text-align: center; color: #4B5563; font-size: 15px; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">
+        Silahkan isi Data untuk unit berikut!
+    </p>
+
+    <div id="targetUnitDisplay" style="background: #EFF6FF; padding: 15px; border-radius: 16px; margin-bottom: 30px; border: 2px dashed #BFDBFE;">
+        <span id="targetUnitID" style="display:block; font-weight: 800; color: #1D4ED8; font-size: 26px; letter-spacing: 1px;">-</span>
+        <span id="targetUnitSpec" style="display:block; font-weight: 600; color: #64748B; font-size: 12px; text-transform: uppercase; margin-top: 5px;">-</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+
+        <div style="width: 310px; margin-bottom: 25px;">
+            <label style="color: #059669; font-size: 14px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 8px; text-align: left; padding-left: 85px;">
+                ISI SOLAR (LITER)
+            </label>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 70px; height: 75px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 60px; line-height: 1;">⛽</span>
+                </div>
+                <input type="number" id="literInput" inputmode="numeric" placeholder="0" max="333"
+                       oninput="checkLiterLimit(this)"
+                       style="width: 220px; height: 75px; font-size: 40px; font-weight: 800; text-align: center; border: 3px solid #10B981; border-radius: 16px; color: #064E3B; background-color: #ECFDF5;">
+            </div>
+            <div id="literWarning" style="color: #DC2626; font-size: 12px; font-weight: bold; display: none; margin-top: 5px; background: #FEE2E2; padding: 5px; border-radius: 8px;">
+                ⚠️ Maksimal 333 Liter!
+            </div>
         </div>
 
-      </div>
+        <div style="width: 310px; margin-bottom: 30px;">
+            <label style="color: #1F2937; font-size: 14px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 8px; text-align: left; padding-left: 85px;">
+                INPUT HOURS METER (HM) <span style="color: #DC2626; font-size: 18px;">*</span>
+            </label>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 70px; height: 75px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 60px; line-height: 1;">⚙️</span>
+                </div>
+                <input type="number" id="hmInput" inputmode="decimal" placeholder="0.0" step="0.1" required
+                       style="width: 220px; height: 75px; font-size: 35px; font-weight: 800; text-align: center; border: 3px solid #3B82F6; border-radius: 16px; color: #1E3A8A; background-color: #EFF6FF;">
+            </div>
+        </div>
+
+    </div>
+
+    <button onclick="submitFinalData()" class="login-btn btn-save-liter" id="saveLiterBtn" style="margin-top: 10px; width: 100%; height: 60px; font-size: 20px; letter-spacing: 1px; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);">
+        SIMPAN DATA
+    </button>
+    
+    <div style="margin-top: 15px;">
+        <button onclick="location.reload()" style="background-color: #EF4444; color: white; border: none; border-radius: 12px; width: 100%; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer;">
+            ❌ BATAL / KEMBALI
+        </button>
+    </div>
+</div>
 
       </div>
 
@@ -607,7 +694,11 @@
 
 <script>
 
+let isSyncing = false; // Kunci untuk mencegah duplikasi pengiriman antreans
 let currentUnitId = null; // <--- TEMPELKAN DI SINI (Variabel Global)
+let currentLastHM = 0; // <--- Tambahkan ini untuk menyimpan history HM dari server
+let isProcessing = false; // Kunci agar tidak terjadi pengiriman ganda
+let bannerTimeout = null; // <--- TAMBAHKAN INI (Untuk mengontrol timer banner)
 
 const CREDS = {
   "bays 1": { pwd: "qwerty", line: "A" },
@@ -615,8 +706,8 @@ const CREDS = {
   "bays 3": { pwd: "12345", line: "C" }
 };
 
-// ✅ UPDATED URL - Apps Script V20.0
-const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbySP4wI_yjZ_iessiQcQcmlkFX7871_ihcVllfjESOXnNVhTN73lyrScwnsTs5Sirvv/exec";
+// ✅ UPDATED URL - Apps Script V27.0
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbzi8Li2EOUrcNXBdxyrnr_Hvmwg2PJQNc-FNyUQRiddeu3asm7lhDCJHWanPwyw6kOp/exec";
 
 let user = null, line = null, qr = null, scanning = false, lastCode = null;
 let cameraFacing = "environment";
@@ -637,7 +728,20 @@ window.addEventListener('online', () => {
 
 window.addEventListener('offline', () => {
   isOnline = false;
-  document.getElementById('offlineBanner').classList.add('show');
+  
+  const banner = document.getElementById('offlineBanner');
+  
+  // 1. Matikan timer "Success" jika sedang berjalan (Agar banner tidak hilang sendiri)
+  if (bannerTimeout) clearTimeout(bannerTimeout);
+
+  // 2. Paksa Reset Tampilan (Hapus Hijau, Paksa Merah)
+  banner.classList.remove('success-sync'); 
+  
+  // 3. Paksa Ganti Teks
+  banner.innerHTML = "📡 Mode Offline - Data akan disimpan lokal";
+  
+  // 4. Munculkan Banner
+  banner.classList.add('show');
 });
 
 window.addEventListener("load", () => {
@@ -666,24 +770,37 @@ function extractUnitIdFromQR(qrData) {
 
 async function loadRefuelDatabase() {
   try {
-    // --- SKENARIO 1: JIKA ONLINE (Download Kamus Data dari Server) ---
+    // --- SKENARIO 1: JIKA ONLINE (Download Kamus Data + History Global) ---
     if (isOnline) {
       const formData = new FormData();
       formData.append("action", "getRefuelDB");
       formData.append("line", line);
       
-      const response = await fetch(apiUrl, { method: "POST", body: formData });
+      // Tips: Tambahkan redirect: 'follow' agar aman di Android
+      const response = await fetch(apiUrl, { method: "POST", body: formData, redirect: "follow" });
       const data = await response.json();
       
       if (data.status === 'success') {
-        // PERUBAHAN UTAMA DI SINI:
-        // Kita ambil "unitDetails" (Kamus ID + Nama), bukan cuma ID saja.
+        // A. UPDATE SPEK UNIT (KAMUS)
+        // Kita ambil "unitDetails" (Kamus ID + Nama)
         const dictionary = data.refuelDB.unitDetails || {}; 
         
-        // 1. Simpan Kamus Lengkap ke Memori HP (Untuk Offline Mode)
+        // Simpan Kamus Lengkap ke Memori HP
         localStorage.setItem('unitDetailsDB', JSON.stringify(dictionary)); 
         
-        // 2. Ambil Kunci ID-nya saja untuk Validasi Scan (Boleh/Tidak)
+        // 🔥 B. UPDATE HISTORY GLOBAL (BAGIAN BARU - SMART OFFLINE GUARD) 🔥
+        // Kita ambil data history transaksi terakhir dari seluruh Bays (yang dikirim Backend)
+        const serverHistory = data.refuelDB.lastHistory || {};
+        
+        // Simpan ke memori 'unitHistory' di HP.
+        // Dengan ini, HP Bays 3 jadi "tahu" kalau Unit X baru saja isi di Bays 1.
+        // Cek dulu apakah datanya ada, baru simpan.
+        if (Object.keys(serverHistory).length > 0) {
+             localStorage.setItem('unitHistory', JSON.stringify(serverHistory));
+             console.log(`🔄 Global History Terupdate: ${Object.keys(serverHistory).length} data transaksi.`);
+        }
+        
+        // C. Update Set Validasi (RAM)
         const units = Object.keys(dictionary);
         validUnitIds = new Set(units);
         
@@ -704,7 +821,7 @@ async function loadRefuelDatabase() {
     }
   } catch (err) {
     console.error('Gagal load DataBase, mencoba akses lokal:', err);
-    // Fallback darurat
+    // Fallback darurat jika server error/timeout
     const localDetails = localStorage.getItem('unitDetailsDB');
     if (localDetails) {
         const dictionary = JSON.parse(localDetails);
@@ -752,13 +869,13 @@ function handleLogin(e) {
     setTimeout(() => {
       transitionToScanner();
       loginBtn.disabled = false;
-      loginBtn.textContent = "Get Started";
+      loginBtn.textContent = "LOGIN";
     }, 500);
   }).catch(() => {
     err.textContent = "❌ Gagal load database dari server";
     err.style.display = "block";
     loginBtn.disabled = false;
-    loginBtn.textContent = "Get Started";
+    loginBtn.textContent = "LOGIN";
   });
 }
 
@@ -832,25 +949,43 @@ function showScanner() {
   }, 100);
 }
 
+// --- FUNGSI TUKAR KAMERA (ANTI MACET) ---
 function toggleCamera() {
   if (!scanning) {
-    alert("Mulai scanning terlebih dahulu!");
+    alert("Kamera belum menyala! Tekan tombol Play (Segitiga Hijau) dulu.");
     return;
   }
   
-  if(qr && scanning) {
+  if(qr) {
+    // Stop dulu kamera lama
     qr.stop().then(() => {
       qr.clear();
+      scanning = false; // Reset status sebentar
+      
+      // Tukar Mode Kamera
       cameraFacing = cameraFacing === "environment" ? "user" : "environment";
+      
+      // Nyalakan lagi
       startScan();
-    }).catch(() => {});
+      
+    }).catch((err) => {
+      console.error("Gagal stop kamera:", err);
+      scanning = false; // Paksa reset jika error
+      alert("Gagal menukar kamera. Silakan tekan Play lagi.");
+    });
   }
 }
 
 function toHourMinute(minutes) {
   const jam = Math.floor(minutes / 60);
   const menit = Math.round(minutes % 60);
-  return `${jam}j ${menit}m`;
+  
+  // Logika supaya bahasanya enak didengar
+  if (jam > 0) {
+    return `${jam} Jam ${menit} Menit`; // Dibaca lengkap
+  } else {
+    return `${menit} Menit`;
+  }
 }
 
 function extractUnitNumber(qrText) {
@@ -861,26 +996,23 @@ function extractUnitNumber(qrText) {
 
 // ✅ SIMPLIFIED: Parse DD/MM/YYYY HH:MM:SS format dari backend
 function parseTimestampSimple(timestampStr) {
-  if (!timestampStr) return "";
-  
-  console.log(`[V12.4] Raw timestamp: ${timestampStr}`);
+  if (!timestampStr) return "Barusan";
   
   try {
-    // Format: "04/12/2025 17:03:32"
-    const match = timestampStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):\d{2}/);
-    if (match) {
-      const jam = parseInt(match[4]);
-      const menit = parseInt(match[5]);
-      const result = jam.toString().padStart(2, '0') + ":" + menit.toString().padStart(2, '0');
-      console.log(`✅ Parsed time: ${result}`);
-      return result;
-    }
+    // Biarkan Javascript memproses format ISO dari Google secara otomatis
+    const date = new Date(timestampStr);
     
-    console.warn(`⚠️ Could not parse timestamp: ${timestampStr}`);
-    return "";
+    // Pastikan valid
+    if (isNaN(date.getTime())) return "-"; 
+    
+    // Ambil Jam dan Menit (Format 24 Jam)
+    const jam = date.getHours().toString().padStart(2, '0');
+    const menit = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${jam}:${menit}`; // Contoh Output: "14:30"
   } catch (err) {
-    console.error(`❌ parseTimestampSimple error: ${err.message}`);
-    return "";
+    console.error("Error parsing date:", err);
+    return "-";
   }
 }
 
@@ -977,27 +1109,61 @@ function showLargeToast(title, message, duration = 4000) {
   }, duration);
 }
 
+// --- FUNGSI START SCAN (ANTI MACET) ---
 function startScan() {
-  if(scanning) return;
+  if(scanning) return; // Cegah klik ganda
+
   try {
+    // Reset Tampilan
     document.getElementById("result").innerHTML = '<span class="result-status"><span class="result-status-icon">🔄</span> Membuka kamera...</span>';
+    
+    // Inisialisasi Scanner
     qr = new Html5Qrcode("qr-reader");
-    qr.start({ facingMode: cameraFacing }, { fps: 10, qrbox: 250 }, onScan, () => {});
+    
+    // KUNCI TOMBOL (Scanning aktif)
+    scanning = true; 
+
+    qr.start(
+      { facingMode: cameraFacing }, 
+      { fps: 10, qrbox: 250 }, 
+      onScan, 
+      (errorMessage) => {
+        // Error saat scanning berjalan (abaikan saja agar tidak spam)
+      }
+    ).catch((err) => {
+      // ⚠️ JIKA KAMERA GAGAL DIBUKA (Misal: Izin ditolak)
+      console.error(err);
+      document.getElementById("result").innerHTML = `<span class="result-status"><span class="result-status-icon">❌</span> Kamera Error: ${err}</span>`;
+      
+      // BUKA KUNCI AGAR BISA KLIK PLAY LAGI
+      scanning = false; 
+    });
+
     document.getElementById("result").innerHTML = '<span class="result-status"><span class="result-status-icon">📷</span> Arahkan ke QR...</span>';
-    scanning = true;
-    lastCode = null;
+    
   } catch(e) {
+    // Error tak terduga
     document.getElementById("result").innerHTML = `<span class="result-status"><span class="result-status-icon">❌</span> ${e.message}</span>`;
+    scanning = false; // Buka kunci
   }
 }
 
-function stopScan() {
+// Update stopScan agar punya fitur "Silent"
+function stopScan(silent = false) {
   if(!qr || !scanning) return;
+  
   qr.stop().then(() => {
     qr.clear();
     scanning = false;
-    document.getElementById("result").innerHTML = '<span class="result-status"><span class="result-status-icon">🔴</span> Dihentikan</span>';
-  }).catch(() => {});
+    
+    // HANYA ubah tulisan jadi "Dihentikan" jika mode silent MATI
+    // Kalau silent = true, layar tidak akan diganggu (tetap menampilkan pesan error detail)
+    if (!silent) {
+        document.getElementById("result").innerHTML = '<span class="result-status"><span class="result-status-icon">🔴</span> Dihentikan</span>';
+    }
+  }).catch((err) => {
+    console.log("Stop failed: ", err);
+  });
 }
 
 async function onScan(decodedText) {
@@ -1012,7 +1178,7 @@ async function onScan(decodedText) {
   result.innerHTML = `<span class="result-status"><span class="result-status-icon">✓</span> QR: ${extractedUnit}</span>`;
   playBeep("scanning");
   
-  // 2. Cek apakah unit terdaftar di Database
+  // 2. Cek apakah unit terdaftar di Database (Frontend Check)
   if (!isValidUnitFrontend(decodedText)) {
     result.className = "status-invalid";
     result.innerHTML = `<span class="result-status"><span class="result-status-icon">❌</span> Unit tidak terdaftar!</span>`;
@@ -1021,43 +1187,65 @@ async function onScan(decodedText) {
     return;
   }
 
-  // 🔥 3. (BARU) CEK HISTORY LOKAL (OFFLINE GUARD) 🔥
-  const localCheck = checkLocalHistoryAllowed(extractedUnit);
+  // 🔥 PERUBAHAN LOGIKA DISINI (ONLINE FIRST) 🔥
+  // Kita cek koneksi internet dulu.
   
- if (!localCheck.allowed) {
-      // JIKA DITOLAK OLEH HP (Belum 8 Jam)
-      const sisaWaktu = toHourMinute(localCheck.minutesRemaining);
-      const jamTerakhir = localCheck.lastTime.getHours().toString().padStart(2, '0') + ":" + localCheck.lastTime.getMinutes().toString().padStart(2, '0');
+  if (navigator.onLine) {
+      // --- KASUS A: ONLINE ---
+      // Langsung tanya server (Abaikan cek lokal dulu, biar server yang memutuskan)
+      // Ini mengatasi masalah unit ditolak padahal di server sudah boleh.
       
-      // 🔥 INI BARIS BARU YANG WAJIB DITAMBAHKAN 🔥
-      // Fungsinya: Simpan laporan "Ditolak" ke antrean upload
-      queueOfflineRejection(extractedUnit, "INTERVAL BELUM TERCAPAI (OFFLINE)"); 
-      // ----------------------------------------------------
-
-      result.className = "status-disallowed";
-      result.innerHTML = `
-        <span class="result-status">
-          <span class="result-status-icon">⛔</span>
-          <span class="result-unit">${extractedUnit} (OFFLINE GUARD)</span>
-          <span class="result-remain">Baru isi jam ${jamTerakhir}. Tunggu ${sisaWaktu} lagi.</span>
-        </span>
-      `;
-      speak(`Ditolak. Unit ini baru saja mengisi.`, "error");
-      playBeep("error");
-      stopScan(); // Hentikan scan agar petugas sadar
-      return; // Stop di sini, jangan lanjut ke server!
+      apiRetryCount = 0;
+      const device = /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+      processQRCode(decodedText, device, result);
+      
+  } else {
+      // --- KASUS B: OFFLINE ---
+      // Baru kita gunakan logic "Offline Guard" (Satpam Lokal)
+      handleOfflineLogic(extractedUnit, decodedText, result);
   }
+}   
 
-  // 4. Jika lolos semua cek, baru proses (Online/Offline)
-  const device = /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
-  apiRetryCount = 0;
-  processQRCode(decodedText, device, result);
+// --- LOGIC PENANGANAN SAAT OFFLINE (SATPAM LOKAL) ---
+function handleOfflineLogic(unitId, originalText, result) {
+    const localCheck = checkLocalHistoryAllowed(unitId);
+
+    if (!localCheck.allowed) {
+        // ... (Kode kalkulasi jam biarkan sama) ...
+        const sisaWaktu = toHourMinute(localCheck.minutesRemaining);
+        const jamTerakhir = localCheck.lastTime.getHours().toString().padStart(2, '0') + ":" + localCheck.lastTime.getMinutes().toString().padStart(2, '0');
+        
+        reportRejectionDirectly(unitId, "INTERVAL BELUM TERCAPAI (OFFLINE)");
+
+        result.className = "status-disallowed";
+        result.innerHTML = `
+        <div class="result-status" style="animation: pulse-glow 1s infinite alternate;">
+          <span class="result-status-icon" style="font-size: 40px;">⛔</span>
+          <span class="result-unit">${unitId} (OFFLINE)</span>
+          <div style="margin: 10px 0; border-top: 1px dashed var(--neon-red); width: 100%; opacity: 0.5;"></div>
+          <div style="text-align: left; width: 100%; font-size: 14px; padding: 0 10px;">
+             📅 Terakhir: <b style="color: #fff;">${jamTerakhir}</b><br>
+             ⏳ Tunggu: <b style="color: #ffcc00; font-size: 16px;">${sisaWaktu}</b> lagi
+          </div>
+          <button onclick="startScan()" style="margin-top: 15px; background: rgba(220, 38, 38, 0.2); border: 1px solid var(--neon-red); color: var(--neon-red); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-family: 'Orbitron'; text-transform: uppercase;">SCAN UNIT LAIN 🔄</button>
+        </div>
+        `;
+        speak(`Ditolak (Mode offline). Unit baru saja mengisi.`, "error");
+        playBeep("error");
+        
+        stopScan(true); // <--- REVISI: PAKAI TRUE (SILENT)
+
+    } else {
+        processOfflineSuccess(originalText, result);
+    }
 }
 
 async function processQRCode(decodedText, device, result, retryCount = 0) {
-  // JIKA OFFLINE: Langsung bypass (Izinkan Input)
-  if (!isOnline) {
-    processOfflineSuccess(decodedText, result);
+  // 1. CEK KONEKSI BROWSER (Layer Pertama)
+  // Jika browser sadar dia offline, lempar ke Logic Offline (Satpam Lokal)
+  if (!navigator.onLine) {
+    const unitId = extractUnitNumber(decodedText);
+    handleOfflineLogic(unitId, decodedText, result);
     return;
   }
 
@@ -1072,25 +1260,40 @@ async function processQRCode(decodedText, device, result, retryCount = 0) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     
-    const response = await fetch(apiUrl, { method: "POST", body: formData, signal: controller.signal });
+    // Tambahkan redirect: 'follow' agar aman di HP Android
+    const response = await fetch(apiUrl, { 
+        method: "POST", 
+        body: formData, 
+        signal: controller.signal,
+        redirect: "follow" 
+    });
+    
     clearTimeout(timeout);
     
     const data = await response.json();
     
     if (data.status === "success") {
+      // SUKSES DARI SERVER
       handleScanSuccess(data, decodedText, result);
     } else if (data.refuelingStatus === "INVALID_QR") {
+      // QR TIDAK DIKENAL SERVER
       result.className = "status-invalid";
       result.innerHTML = `<span class="result-status"><span class="result-status-icon">❌</span> ${data.message}</span>`;
       speak(data.message, "error");
     } else {
-      // Disallowed dll
+      // DITOLAK SERVER (Disallowed)
       handleScanSuccess(data, decodedText, result);
     }
+
   } catch (err) {
-    console.warn("Gagal koneksi server, masuk mode offline:", err);
-    // JIKA ERROR KONEKSI: Anggap Offline & Izinkan Input
-    processOfflineSuccess(decodedText, result);
+    console.warn("⚠️ Gagal koneksi server (Timeout/Error), beralih ke Satpam Lokal:", err);
+    
+    // 🔥 REVISI PENTING DISINI (FALLBACK) 🔥
+    // Jangan langsung 'processOfflineSuccess' (Diterima).
+    // Kita harus tanya dulu ke 'handleOfflineLogic' (Cek history lokal).
+    
+    const unitId = extractUnitNumber(decodedText);
+    handleOfflineLogic(unitId, decodedText, result);
   }
 }
 
@@ -1117,33 +1320,29 @@ function processOfflineSuccess(qrText, result) {
     handleScanSuccess(fakeData, qrText, result);
 }
 
+// --- UPDATE FUNGSI HANDLE SUCCESS (TAMPILAN KONSISTEN & FIX TOMBOL) ---
 function handleScanSuccess(data, decodedText, result) {
   const status = data.refuelingStatus;
   const minutes = data.minutesRemaining;
   const waktuSisaStr = toHourMinute(minutes);
   
- if (status === "ALLOWED") {
-    // 1. Sembunyikan area scanner agar layar tidak penuh
+  lastCode = null; 
+
+  if (status === "ALLOWED") {
+    // KASUS DITERIMA: Tetap pakai stopScan() biasa karena layar akan diganti form input
     document.querySelector('.qr-display-area').style.display = 'none';
-    
-    // 2. Munculkan area input quantity liter
     document.getElementById('quantityArea').style.display = 'block';
     
-    // 3. Tampilkan identitas unit yang sedang diproses
     document.getElementById('targetUnitID').textContent = data.unitId;
     document.getElementById('targetUnitSpec').textContent = data.unitName;
     
-    // 4. Simpan Unit ID ke kantong (Variabel Global) untuk dikirim nanti
     currentUnitId = data.unitId; 
+    currentLastHM = parseFloat(data.lastHM) || 0; 
     
-    // 5. Matikan kamera (Penting!)
-    stopScan(); 
-    
-    // 6. Feedback suara dan beep
+    stopScan(true); // Silent, karena layar scanner disembunyikan
     playBeep("success");
-    speak(`Unit ${data.unitId} diizinkan. Silakan masukkan jumlah liter.`, "success");
+    speak(`Unit ${data.unitId} diizinkan.`, "success");
     
-    // 7. Otomatis arahkan kursor ke kotak liter agar keyboard HP muncul
     setTimeout(() => { 
       const inputLiter = document.getElementById('literInput');
       inputLiter.focus();
@@ -1151,34 +1350,49 @@ function handleScanSuccess(data, decodedText, result) {
     }, 500);
 
   } else if (status === "DISALLOWED") {
-     // ... (Sisanya ke bawah tetap pakai kodingan lama kamu) {
-    //baris baru : untuk konversi barcode kedalam text
+    // --- REVISI DISINI: PAKAI stopScan(true) ---
+    stopScan(true); // <--- MATIKAN KAMERA TANPA MENGHAPUS PESAN ERROR
+    scanning = false; 
+    
     let fullUnitNumber = extractUnitNumber(decodedText);
-    let jamRefuel = "";
-    
-    // ✅ FIXED: Parse timestamp dari backend
-    if (data.allowedTimestampStr) {
-      console.log(`🔍 Backend send: ${data.allowedTimestampStr}`);
-      jamRefuel = parseTimestampSimple(data.allowedTimestampStr);
-      console.log(`✅ Frontend parse result: ${jamRefuel}`);
-    }
-    
+    let jamRefuel = data.allowedTimestampStr ? parseTimestampSimple(data.allowedTimestampStr) : "-";
     const allowedLine = data.lineName || line;
+
     result.className = "status-disallowed";
     result.innerHTML = `
-      <span class="result-status">
-        <span class="result-status-icon">🚫</span>
-        <span class="result-unit">${fullUnitNumber} - Pengisian terakhir pukul ${jamRefuel} di line ${allowedLine}</span>
-        <span class="result-remain">Sisa ${waktuSisaStr} lagi</span>
-      </span>
+      <div class="result-status" style="animation: pulse-glow 1s infinite alternate;">
+        <span class="result-status-icon" style="font-size: 40px;">⛔</span>
+        <span class="result-unit" style="font-size: 24px; color: var(--neon-red); font-family: 'Orbitron';">${fullUnitNumber}</span>
+        <div style="margin: 10px 0; border-top: 1px dashed var(--neon-red); width: 100%; opacity: 0.5;"></div>
+        <div style="text-align: left; width: 100%; font-size: 14px; padding: 0 10px;">
+           📅 Terakhir: <b style="color: #fff;">${jamRefuel}</b><br>
+           📍 Lokasi: <b style="color: #fff;"> LINE ${allowedLine}</b><br>
+           ⏳ Tunggu: <b style="color: #ffcc00; font-size: 16px;">${waktuSisaStr}</b> lagi
+        </div>
+        <button onclick="startScan()" style="margin-top: 15px; background: rgba(220, 38, 38, 0.2); border: 1px solid var(--neon-red); color: var(--neon-red); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-family: 'Orbitron'; text-transform: uppercase;">SCAN UNIT LAIN 🔄</button>
+      </div>
     `;
     
-    const unitInti = extractUnitNumber(decodedText);
-    speak(`Mohon maaf unit ${unitInti} sudah melakukan pengisian pukul ${jamRefuel} di line ${allowedLine}`, "error");
+    const pesanSuara = `Pengisian ditolak. Unit ${fullUnitNumber} sudah mengisi pada pukul ${jamRefuel}, di LINE ${allowedLine}. Tunggu ${waktuSisaStr} lagi.`;
+    speak(pesanSuara, "error");
+    playBeep("error");
+
   } else if (status === "INVALID_QR") {
+    // --- REVISI DISINI JUGA ---
+    stopScan(true); // <--- Silent Mode
+    scanning = false;
+    
     result.className = "status-invalid";
-    result.innerHTML = `<span class="result-status"><span class="result-status-icon">❌</span> Unit tidak terdaftar</span>`;
-    speak("Unit tidak terdaftar di sistem", "error");
+    result.innerHTML = `
+        <span class="result-status">
+            <span class="result-status-icon" style="font-size: 30px;">❌</span> 
+            <span style="color: var(--neon-red); font-weight: bold;">UNIT TIDAK TERDAFTAR</span>
+            <div style="font-size: 12px; margin-top:5px; color:#fff;">Hubungi Admin Logistik</div>
+            <button onclick="startScan()" style="margin-top: 10px; padding: 8px 15px; border-radius: 8px; border: 1px solid #fff; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer;">SCAN ULANG</button>
+        </span>
+    `;
+    speak("Unit tidak terdaftar", "error");
+    playBeep("error");
   }
 }
 
@@ -1250,201 +1464,302 @@ function playBeepSound(audioContext, type) {
   }
 }
 
-// FUNGSI UNTUK MENGIRIM DATA LITER KE SPREADSHEET
 
-// 🔥 UPDATE FUNGSI SUBMIT (LOGIKA FIX)
-async function submitFinalData() {
-  const literInput = document.getElementById('literInput');
-  const literValue = literInput.value;
-  const btn = document.getElementById('saveLiterBtn');
-  
-  // 1. Validasi Input
-  if (!literValue || literValue <= 0) {
-    alert("⚠️ Mohon masukkan jumlah liter yang valid!");
-    literInput.focus();
-    return;
-  }
 
-  // 2. Validasi Unit ID (Penting jika halaman habis direfresh)
-  if (!currentUnitId) {
-    alert("⚠️ Data unit hilang. Mohon scan ulang!");
-    location.reload();
-    return;
-  }
+// ==========================================
+// fungsi pengecekan quantity liter
+// ==========================================
+function checkLiterLimit(input) {
+    const maxLiter = 333;
+    const warningText = document.getElementById("literWarning");
+    const val = parseFloat(input.value);
 
-  // 🔥 (BARU) CATAT JAM PENGISIAN DI MEMORI HP SEKARANG JUGA 🔥
-  saveLocalHistory(currentUnitId); 
-  // -----------------------------------------------------------
-  
-  btn.disabled = true;
-  btn.innerHTML = "⏳ MENYIMPAN...";
-
-  // 3. Siapkan Data Paket
-  const payload = {
-    unitId: currentUnitId,
-    liter: literValue,
-    line: user, // Pastikan variabel 'user' sudah ada (Bays 1/2/3)
-    device: "Mobile",
-    timestamp: new Date().getTime()
-  };
-
-  // --- FUNGSI SIMPAN OFFLINE (HELPER) ---
-  const saveOffline = () => {
-      let queue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
-      queue.push(payload);
-      localStorage.setItem('pendingRefuels', JSON.stringify(queue));
-      
-      alert("📡 SINYAL HILANG: Data disimpan di HP.\nAkan otomatis terupload saat sinyal kembali.");
-      location.reload();
-  };
-
-  // 4. CEK KONEKSI (Pakai navigator.onLine agar lebih aman)
-  if (!navigator.onLine) {
-    saveOffline();
-    return;
-  }
-
-  // 5. PROSES ONLINE
-  try {
-    const formData = new FormData();
-    formData.append("action", "submitRefuel");
-    formData.append("unitId", payload.unitId);
-    formData.append("liter", payload.liter);
-    formData.append("line", payload.line);
-    formData.append("device", payload.device);
-
-    const response = await fetch(apiUrl, { method: "POST", body: formData });
-    const resData = await response.json();
-
-    if (resData.status === "success") {
-      // ✅ SUKSES
-      alert("✅ BERHASIL TERKIRIM!");
-      location.reload();
+    if (val > maxLiter) {
+        input.style.borderColor = "red";
+        input.style.backgroundColor = "#FEF2F2";
+        warningText.style.display = "block";
     } else {
-      // ❌ GAGAL DARI SERVER (Data Ditolak)
-      // Jangan simpan offline! Tampilkan error saja.
-      alert("❌ Gagal Menyimpan: " + (resData.message || "Unknown Error"));
-      btn.disabled = false;
-      btn.innerHTML = "SIMPAN DATA";
+        input.style.borderColor = "#10B981"; // Kembali Hijau
+        input.style.backgroundColor = "#ECFDF5";
+        warningText.style.display = "none";
     }
-
-  } catch (err) {
-    // ⚠️ GAGAL KONEKSI (Network Error / Fetch Failed)
-    // Baru simpan ke offline queue di sini
-    console.warn("Gagal koneksi, alihkan ke offline:", err);
-    saveOffline();
-  }
 }
 
-  // 🔥 5. FUNGSI SINKRONISASI DATA (Upload Otomatis)
-// ==========================================
-// 🔄 FUNGSI SINKRONISASI (DATA LITER + LAPORAN PENOLAKAN)
-// ==========================================
-  async function uploadPendingData() {
-    // 1. Ambil Antrean Data SUKSES (Refuel Liter)
-    let refuelQueue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
+// 🔥 UPDATE FUNGSI SUBMIT (LOGIKA FIX & BERSIH)
+
+async function submitFinalData() {
+    // 1. Cek apakah sedang memproses data sebelumnya?
+    if (isProcessing) return; 
+
+    const btn = document.getElementById('saveLiterBtn');
+    const literInput = document.getElementById('literInput');
+    const hmInput = document.getElementById('hmInput');
     
-    // 2. Ambil Antrean Data GAGAL/DITOLAK (Laporan WA) - 🔥 BAGIAN BARU
+    // Ambil value dan ubah ke Angka (Float) agar bisa dihitung
+    const literVal = parseFloat(literInput.value);
+    const hmVal = parseFloat(hmInput.value); // PENTING: HM harus jadi angka untuk validasi lonjakan
+
+    // --- BATAS PENGISIAN ---
+    const MAX_LITER = 333;
+
+    // 2. VALIDASI DASAR (KOSONG)
+    if (!literInput.value || !hmInput.value) {
+        alert("⚠️ Mohon isi Jumlah Solar dan HM!");
+        return;
+    }
+
+    // 3. 🔥 VALIDASI BATAS ATAS (MAKSIMAL 333 LITER) 🔥
+    if (literVal > MAX_LITER) {
+        alert(`❌ ERROR: MELEBIHI KAPASITAS!\nMaksimal pengisian adalah ${MAX_LITER} Liter.`);
+        
+        if (typeof speak === "function") speak(`Pengisian terlalu banyak. Maksimal ${MAX_LITER} liter.`, "error");
+        if (typeof playBeep === "function") playBeep("error");
+        
+        literInput.style.borderColor = "red"; 
+        literInput.value = ""; 
+        literInput.focus();
+        
+        return; // ⛔ STOP DISINI
+    }
+
+    // 4. 🔥 VALIDASI BATAS BAWAH (MINUS ATAU 0) 🔥
+    if (literVal <= 0) {
+        alert("❌ ERROR: JUMLAH TIDAK VALID!\nJumlah solar tidak boleh 0 atau minus.");
+        
+        if (typeof speak === "function") speak("Jumlah liter tidak valid.", "error");
+        if (typeof playBeep === "function") playBeep("error");
+
+        literInput.style.borderColor = "red";
+        literInput.focus();
+        
+        return; // ⛔ STOP DISINI
+    }
+
+    // 5. 🔥 DETEKSI ANOMALI HM (SOFT VALIDATION) 🔥
+    // Logika ini hanya jalan jika 'currentLastHM' memiliki nilai (dari Backend)
+    if (currentLastHM > 0) {
+        let isAnomaly = false;
+        let warningText = "";
+
+        // KASUS A: HM Turun (Current < Last)
+        if (hmVal < currentLastHM) {
+            isAnomaly = true;
+            warningText = `⚠️ PERINGATAN: HM TURUN!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}\n\nNilai HM lebih kecil dari sebelumnya.`;
+        } 
+        // KASUS B: HM Loncat > 20 Jam
+        else if (hmVal > (currentLastHM + 20)) {
+            isAnomaly = true;
+            warningText = `⚠️ PERINGATAN: LONJAKAN HM!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}\n\nAda ANOMALI selisih HM lebih dari 20 HM .`;
+        }
+
+        // JIKA ADA ANOMALI, TAMPILKAN KONFIRMASI
+        if (isAnomaly) {
+            // Mainkan suara peringatan
+            if (typeof speak === "function") speak("Peringatan. Periksa kembali input Hour Meter.", "error");
+            if (typeof playBeep === "function") playBeep("error");
+
+            // Munculkan Dialog Konfirmasi
+            const userConfirmed = confirm(`${warningText}\n\nHM mu terakhir pengisian adalah ${currentLastHM}.\nApakah anda yakin nilai HM anda sekarang ${hmVal}?`);
+
+            if (!userConfirmed) {
+                // Jika User pilih "Cancel" / "Tidak"
+                hmInput.focus();
+                hmInput.style.borderColor = "red";
+                return; // ⛔ BATALKAN PENGIRIMAN
+            }
+            // Jika User pilih "OK", lanjut ke bawah (Kirim Data)
+        }
+    }
+
+    // --- JIKA LOLOS SEMUA VALIDASI, BARU PROSES ---
+    
+    // KUNCI TOMBOL
+    isProcessing = true;
+    btn.disabled = true;
+    btn.innerHTML = "⏳ MENGIRIM...";
+
+    const payload = {
+        unitId: currentUnitId,
+        liter: literVal, // Kirim angka valid
+        hm: hmVal,       // Kirim angka valid
+        line: user,
+        device: "Mobile Trial"
+    };
+
+    try {
+        const formData = new FormData();
+        formData.append("action", "submitRefuel");
+        formData.append("unitId", payload.unitId);
+        formData.append("liter", payload.liter);
+        formData.append("hm", payload.hm);
+        formData.append("line", payload.line);
+        formData.append("device", payload.device);
+
+        // Timeout 10 detik
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(apiUrl, { 
+            method: "POST", 
+            body: formData, 
+            signal: controller.signal,
+            redirect: "follow" 
+        });
+        
+        clearTimeout(timeout);
+        const resData = await response.json();
+
+        if (resData.status === "success") {
+            // ✅ SUKSES ONLINE
+            saveLocalHistory(currentUnitId);
+            if (typeof playBeep === "function") playBeep("success");
+            alert("✅ DATA BERHASIL TERKIRIM!");
+            location.reload(); 
+        } else {
+            throw new Error(resData.message || "Ditolak Server");
+        }
+
+    } catch (err) {
+        console.warn("⚠️ Gagal Online, Beralih ke Offline:", err);
+        
+        // --- DIAGNOSA ERROR ---
+        // Kita cek apakah ini murni masalah sinyal atau masalah kodingan/server
+        if (!navigator.onLine) {
+             // Ini beneran Offline (Internet mati)
+             alert("📡 MODE OFFLINE: Sinyal HP hilang. Data disimpan di internal.");
+        } else {
+             // Ini Internet Nyala tapi Server Menolak (Kemungkinan masalah Deploy/Script)
+             alert(`⚠️ GAGAL KONEKSI SERVER!\n\nPesan Error: ${err.message}\n\n(Internet anda aktif, tapi Server menolak. Cek Izin Deployment Script "Anyone").\n\nData tetap disimpan di HP.`);
+        }
+
+        // ⚠️ MASUK OFFLINE
+        saveLocalHistory(currentUnitId);
+        
+        // Simpan ke antrean offline
+        let queue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
+        queue.push(payload);
+        localStorage.setItem('pendingRefuels', JSON.stringify(queue));
+        
+        alert("📡 MODE OFFLINE: Data disimpan di HP (Akan terkirim otomatis saat Device mendapatkan sinyal)");
+        location.reload();
+    } finally {
+        isProcessing = false;
+    }
+}
+
+
+// 🔄 FUNGSI SINKRONISASI (DATA LITER + LAPORAN PENOLAKAN)
+
+async function uploadPendingData() {
+    // Cek koneksi internet dulu
+    if (!navigator.onLine) return; 
+
+    // Jika sedang proses, jangan jalankan lagi
+    if (isSyncing) return; 
+    
+    let refuelQueue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
     let rejectQueue = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
 
-    // Jika kedua antrean kosong, tidak perlu kerja
+    // Jika antrean kosong, stop
     if (refuelQueue.length === 0 && rejectQueue.length === 0) return;
 
-    // 3. Update Banner Biru (Info Upload)
+    isSyncing = true; // 🔒 Kunci aktif
+    
+    // 💡 RAHASIA: Kosongkan localStorage agar tidak dibaca ulang oleh Heartbeat Sync berikutnya
+    localStorage.setItem('pendingRefuels', '[]');
+    localStorage.setItem('pendingRejections', '[]');
+
     const banner = document.getElementById('offlineBanner');
+    
+    // Tampilkan Status MENGIRIM (Kuning/Loading)
     banner.classList.add('show');
-    // Tampilkan detail jumlah data yang mau dikirim
-    banner.textContent = `🔄 Sinkronisasi: ${refuelQueue.length} Refuel + ${rejectQueue.length} Laporan...`;
-    banner.style.backgroundColor = "#DBEAFE"; // Biru Muda
-    banner.style.color = "#1E40AF";           // Biru Tua
+    banner.classList.remove('success-sync'); // Reset style
+    banner.innerHTML = `🔄 MENGIRIM ${refuelQueue.length + rejectQueue.length} DATA TERTUNDA...`;
 
-    // ==========================================
-    // PROSES 1: KIRIM DATA REFUEL (Input Liter)
-    // ==========================================
-    let failedRefuels = []; // Wadah sisa jika gagal lagi
+    let failedRefuels = [];
+    let failedRejections = [];
 
+    // --- 1. PROSES REFUEL ---
     for (const item of refuelQueue) {
         try {
             const formData = new FormData();
             formData.append("action", "submitRefuel");
             formData.append("unitId", item.unitId);
             formData.append("liter", item.liter);
+            formData.append("hm", item.hm);
             formData.append("line", item.line);
-            formData.append("device", "Mobile (Synced)"); 
-            
-            // Opsional: Jika ingin mengirim jam asli scan (bukan jam sync)
-            if(item.timestamp) {
-                 formData.append("originalTime", item.timestamp);
-            }
+            formData.append("device", "Mobile (Synced)");
+            if(item.timestamp) formData.append("originalTime", item.timestamp);
 
-            await fetch(apiUrl, { method: "POST", body: formData });
-            console.log(`✅ Refuel Synced: ${item.unitId}`);
-            
+            const response = await fetch(apiUrl, { method: "POST", body: formData, redirect: "follow" });
+            // Cek apakah server merespon success
+            const resData = await response.json();
+            if(resData.status !== "success") throw new Error("Server Error");
+
         } catch (err) {
-            console.error(`❌ Gagal sync refuel ${item.unitId}:`, err);
-            failedRefuels.push(item); // Masukkan kembali ke antrean
+            console.warn("Gagal kirim item refuel:", err);
+            failedRefuels.push(item); // Tampung untuk dikembalikan
         }
     }
-    // Simpan sisa refuel yang gagal ke memori HP
-    localStorage.setItem('pendingRefuels', JSON.stringify(failedRefuels));
 
-
-    // ==========================================
-    // PROSES 2: KIRIM LAPORAN PENOLAKAN (WA) 🔥
-    // ==========================================
-    let failedRejections = []; // Wadah sisa laporan gagal
-
+    // --- 2. PROSES PENOLAKAN (WA) ---
     for (const item of rejectQueue) {
         try {
             const formData = new FormData();
-            // Perhatikan actionnya beda: "reportOfflineRejection"
-            formData.append("action", "reportOfflineRejection"); 
+            formData.append("action", "reportOfflineRejection");
             formData.append("unitId", item.unitId);
             formData.append("line", item.line);
-            formData.append("timestamp", item.timestamp); // Wajib kirim jam kejadian asli!
-
+            formData.append("timestamp", item.timestamp);
+            
             await fetch(apiUrl, { method: "POST", body: formData });
-            console.log(`✅ Laporan Penolakan Synced: ${item.unitId}`);
-
         } catch (err) {
-            console.error(`❌ Gagal sync laporan ${item.unitId}:`, err);
-            failedRejections.push(item); // Masukkan kembali ke antrean
+            console.warn("Gagal kirim item reject:", err);
+            failedRejections.push(item);
         }
     }
-    // Simpan sisa laporan yang gagal ke memori HP
-    localStorage.setItem('pendingRejections', JSON.stringify(failedRejections));
 
+    // --- 3. HANDLING GAGAL & SUKSES ---
 
-    // ==========================================
-    // FINAL: CEK HASIL & UPDATE BANNER
-    // ==========================================
-    const totalSisa = failedRefuels.length + failedRejections.length;
+    // A. Kembalikan data yang gagal ke localStorage (jika ada)
+    if (failedRefuels.length > 0) {
+        let current = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
+        localStorage.setItem('pendingRefuels', JSON.stringify([...current, ...failedRefuels]));
+    }
+    if (failedRejections.length > 0) {
+        let current = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
+        localStorage.setItem('pendingRejections', JSON.stringify([...current, ...failedRejections]));
+    }
 
-    if (totalSisa === 0) {
-        // SUKSES SEMUA
-        banner.textContent = "✅ Semua data & laporan offline terkirim!";
-        banner.style.backgroundColor = "#D1FAE5"; // Hijau Muda
-        banner.style.color = "#065F46";           // Hijau Tua
+    // B. CEK HASIL AKHIR (HIJAU JIKA SUKSES SEMUA)
+    if (failedRefuels.length === 0 && failedRejections.length === 0) {
+        // ✅ SEMUA BERHASIL
+        banner.innerHTML = `✅ DATA TERTUNDA BERHASIL TERKIRIM!`;
+        banner.classList.add('success-sync'); // Ubah jadi Hijau Futuristik
         
-        // Hilangkan banner setelah 3 detik
-        setTimeout(() => {
-            banner.classList.remove('show');
-            // Reset tampilan ke default offline
-            banner.textContent = "📡 Mode Offline - Data disimpan lokal";
-            banner.style.backgroundColor = "#FEF3C7"; 
-            banner.style.color = "#92400E";
-        }, 3000);
+        // Bunyi notif (jika ada fiturnya)
+        if (typeof playBeep === 'function') playBeep("success");
+
+        // Tahan banner hijau selama 4 detik, lalu sembunyikan
+        if (bannerTimeout) clearTimeout(bannerTimeout); // Reset timer lama jika ada
+        
+        bannerTimeout = setTimeout(() => {
+            // Cek lagi: Kalau tiba-tiba offline saat nunggu, jangan sembunyikan!
+            if (navigator.onLine) { 
+                banner.classList.remove('show');
+                banner.classList.remove('success-sync'); 
+            }
+            isSyncing = false; // 🔓 Buka kunci
+        }, 4000);
 
     } else {
-        // MASIH ADA SISA
-        banner.textContent = `⚠️ Sisa ${totalSisa} data belum terkirim. Coba cari sinyal kuat.`;
-        banner.style.backgroundColor = "#FEE2E2"; // Merah Muda
-        banner.style.color = "#991B1B";
+        // ❌ ADA YANG GAGAL (Sinyal putus di tengah jalan)
+        // Langsung sembunyikan banner agar nanti dicoba lagi oleh interval berikutnya
+        banner.classList.remove('show');
+        isSyncing = false; // 🔓 Buka kunci
     }
 }
 
 
-// ==========================================
 // 🧠 FITUR OFFLINE: CEK INTERVAL 8 JAM (LOCAL MEMORY)
 // ==========================================
 const REFUEL_INTERVAL_HOURS = 8; // Atur durasi interval di sini
@@ -1484,22 +1799,72 @@ function saveLocalHistory(unitId) {
   // 📝 FUNGSI CATAT PENOLAKAN KE MEMORI HP
   // ==========================================
   function queueOfflineRejection(unitId, reason) {
-    // 1. Ambil daftar laporan yang sudah ada (kalau ada)
     let rejections = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
-    
-    // 2. Tambahkan laporan baru ke tumpukan
     rejections.push({
         unitId: unitId,
-        line: user, // Mengambil variabel global 'user' (Bays 1/2/3)
-        timestamp: new Date().getTime(), // Catat jam kejadian (bukan jam kirim)
+        line: user, 
+        timestamp: new Date().getTime(),
         reason: reason
     });
-    
-    // 3. Simpan kembali ke memori HP
     localStorage.setItem('pendingRejections', JSON.stringify(rejections));
     console.log(`📝 Laporan penolakan disimpan lokal untuk: ${unitId}`);
-  }
+  } 
 
+  // 🔄 HEARTBEAT SYNC: Cek data tertunda setiap 15 detik secara otomatis
+  setInterval(() => {
+  if (navigator.onLine) {
+    console.log("🔍 Memeriksa antrean data offline...");
+    uploadPendingData();
+    }
+    }, 30000); // 15000 ms = 15 detik  
+
+    // ==========================================
+// 🚀 FUNGSI KIRIM REJECT LANGSUNG (REAL-TIME)
+// ==========================================
+// ==========================================
+// 🚀 FUNGSI KIRIM REJECT LANGSUNG (REAL-TIME)
+// ==========================================
+async function reportRejectionDirectly(unitId, reason) {
+    if (!navigator.onLine) {
+        queueOfflineRejection(unitId, reason);
+        return;
+    }
+    try {
+        const formData = new FormData();
+        formData.append("action", "reportOfflineRejection");
+        formData.append("unitId", unitId);
+        formData.append("line", user);
+        formData.append("timestamp", new Date().getTime());
+        formData.append("reason", reason);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+
+        await fetch(apiUrl, { method: "POST", body: formData, signal: controller.signal });
+        clearTimeout(timeout);
+        console.log("✅ Rejection terkirim ke WA secara Direct");
+    } catch (err) {
+        console.warn("Gagal kirim reject langsung, menyimpan ke antrean...", err);
+        queueOfflineRejection(unitId, reason);
+    }
+}
+
+// ==========================================
+// 💓 HEARTBEAT SYNC: JANTUNG OTOMATIS
+// ==========================================
+// Kode ini akan "berdenyut" setiap 5 detik untuk mengecek apakah ada sinyal & data tertunda
+  setInterval(() => {
+    if (navigator.onLine) {
+        let pendingRefuel = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
+        let pendingReject = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
+
+        // Jika ada data DAN tidak sedang proses kirim
+        if ((pendingRefuel.length > 0 || pendingReject.length > 0) && !isSyncing) {
+            console.log("⚡ Sinyal Stabil & Ada Data Tertunda -> Eksekusi Upload...");
+            uploadPendingData();
+        }
+    }
+  }, 5000);
 </script>
 
 <!-- 🔧 SERVICE WORKER REGISTRATION -->

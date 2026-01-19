@@ -1,5 +1,5 @@
 // 🚀 SERVICE WORKER - V2.0 (MACO OFFLINE READY)
-const CACHE_NAME = 'refuel-maco-v12.4'; // Ganti versi jika ada update besar
+const CACHE_NAME = 'refuel-maco-v27.0 (BETA)'; // Ganti versi jika ada update besar
 
 // 📋 Assets yang WAJIB disimpan di memori HP
 // Jika salah satu gagal didownload, installasi offline akan gagal.
