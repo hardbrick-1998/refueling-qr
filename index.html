@@ -707,7 +707,7 @@ const CREDS = {
 };
 
 // ✅ UPDATED URL - Apps Script V27.0
-const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbzKDDYwlDMfb8e59-7yIHjZPbp-jIlGCkI0ujaLbTvLdNDUALGs_X3Lj5FWdsObISDb/exec";
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbyosvPgdDyxwZfVFb3eUP-1ZZY0MYhKYmQ9pCcrWaNHQayYElI6bRF_rDsXAV4Wi_jJ/exec";
 
 let user = null, line = null, qr = null, scanning = false, lastCode = null;
 let cameraFacing = "environment";
@@ -1497,7 +1497,7 @@ async function submitFinalData() {
     
     // Ambil value dan ubah ke Angka (Float) agar bisa dihitung
     const literVal = parseFloat(literInput.value);
-    const hmVal = parseFloat(hmInput.value); // PENTING: HM harus jadi angka untuk validasi lonjakan
+    const hmVal = parseFloat(hmInput.value); 
 
     // --- BATAS PENGISIAN ---
     const MAX_LITER = 333;
@@ -1508,82 +1508,72 @@ async function submitFinalData() {
         return;
     }
 
-    // 3. 🔥 VALIDASI BATAS ATAS (MAKSIMAL 333 LITER) 🔥
+    // 3. VALIDASI BATAS ATAS
     if (literVal > MAX_LITER) {
         alert(`❌ ERROR: MELEBIHI KAPASITAS!\nMaksimal pengisian adalah ${MAX_LITER} Liter.`);
-        
-        if (typeof speak === "function") speak(`Pengisian terlalu banyak. Maksimal ${MAX_LITER} liter.`, "error");
-        if (typeof playBeep === "function") playBeep("error");
+        if (typeof speak === "function") speak(`Maksimal ${MAX_LITER} liter.`, "error");
         
         literInput.style.borderColor = "red"; 
         literInput.value = ""; 
         literInput.focus();
-        
-        return; // ⛔ STOP DISINI
+        return; 
     }
 
-    // 4. 🔥 VALIDASI BATAS BAWAH (MINUS ATAU 0) 🔥
+    // 4. VALIDASI BATAS BAWAH
     if (literVal <= 0) {
         alert("❌ ERROR: JUMLAH TIDAK VALID!\nJumlah solar tidak boleh 0 atau minus.");
-        
-        if (typeof speak === "function") speak("Jumlah liter tidak valid.", "error");
-        if (typeof playBeep === "function") playBeep("error");
-
         literInput.style.borderColor = "red";
         literInput.focus();
-        
-        return; // ⛔ STOP DISINI
+        return; 
     }
 
-    // 5. 🔥 DETEKSI ANOMALI HM (SOFT VALIDATION) 🔥
-    // Logika ini hanya jalan jika 'currentLastHM' memiliki nilai (dari Backend)
+    // 5. DETEKSI ANOMALI HM
     if (currentLastHM > 0) {
         let isAnomaly = false;
         let warningText = "";
 
-        // KASUS A: HM Turun (Current < Last)
         if (hmVal < currentLastHM) {
             isAnomaly = true;
-            warningText = `⚠️ PERINGATAN: HM TURUN!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}\n\nNilai HM lebih kecil dari sebelumnya.`;
+            warningText = `⚠️ PERINGATAN: HM TURUN!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}`;
         } 
-        // KASUS B: HM Loncat > 20 Jam
         else if (hmVal > (currentLastHM + 20)) {
             isAnomaly = true;
-            warningText = `⚠️ PERINGATAN: LONJAKAN HM!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}\n\nAda ANOMALI selisih HM lebih dari 20 HM .`;
+            warningText = `⚠️ PERINGATAN: LONJAKAN HM!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}`;
         }
 
-        // JIKA ADA ANOMALI, TAMPILKAN KONFIRMASI
         if (isAnomaly) {
-            // Mainkan suara peringatan
-            if (typeof speak === "function") speak("Peringatan. Periksa kembali input Hour Meter.", "error");
+            if (typeof speak === "function") speak("Periksa input Hour Meter.", "error");
             if (typeof playBeep === "function") playBeep("error");
 
-            // Munculkan Dialog Konfirmasi
-            const userConfirmed = confirm(`${warningText}\n\nHM mu terakhir pengisian adalah ${currentLastHM}.\nApakah anda yakin nilai HM anda sekarang ${hmVal}?`);
+            const userConfirmed = confirm(`${warningText}\n\nApakah anda yakin nilai HM anda sekarang ${hmVal}?`);
 
             if (!userConfirmed) {
-                // Jika User pilih "Cancel" / "Tidak"
                 hmInput.focus();
                 hmInput.style.borderColor = "red";
-                return; // ⛔ BATALKAN PENGIRIMAN
+                return; 
             }
-            // Jika User pilih "OK", lanjut ke bawah (Kirim Data)
         }
     }
 
     // --- JIKA LOLOS SEMUA VALIDASI, BARU PROSES ---
     
+    // 🔥 PERUBAHAN 1: AMBIL WAKTU DETIK INI JUGA (SEBELUM KIRIM)
+    const timestampKunci = new Date().toISOString(); 
+
     // KUNCI TOMBOL
     isProcessing = true;
     btn.disabled = true;
     btn.innerHTML = "⏳ MENGIRIM...";
 
+    // 🔥 PERUBAHAN 2: MASUKKAN JAM KE DALAM PAYLOAD
+    // Agar saat masuk Offline Storage, jamnya terbawa
     const payload = {
         unitId: currentUnitId,
-        liter: literVal, // Kirim angka valid
-        hm: hmVal,       // Kirim angka valid
+        liter: literVal,
+        hm: hmVal,
         line: user,
-        device: "Mobile Trial"
+        device: "Mobile Trial",
+        timestamp: timestampKunci // <--- INI PENTING!
     };
 
     try {
@@ -1594,6 +1584,9 @@ async function submitFinalData() {
         formData.append("hm", payload.hm);
         formData.append("line", payload.line);
         formData.append("device", payload.device);
+        
+        // 🔥 PERUBAHAN 3: KIRIM PARAMETER 'originalTime' KE SERVER
+        formData.append("originalTime", payload.timestamp);
 
         // Timeout 10 detik
         const controller = new AbortController();
@@ -1623,13 +1616,10 @@ async function submitFinalData() {
         console.warn("⚠️ Gagal Online, Beralih ke Offline:", err);
         
         // --- DIAGNOSA ERROR ---
-        // Kita cek apakah ini murni masalah sinyal atau masalah kodingan/server
         if (!navigator.onLine) {
-             // Ini beneran Offline (Internet mati)
              alert("📡 MODE OFFLINE: Sinyal HP hilang. Data disimpan di internal.");
         } else {
-             // Ini Internet Nyala tapi Server Menolak (Kemungkinan masalah Deploy/Script)
-             alert(`⚠️ GAGAL KONEKSI SERVER!\n\nPesan Error: ${err.message}\n\n(Internet anda aktif, tapi Server menolak. Cek Izin Deployment Script "Anyone").\n\nData tetap disimpan di HP.`);
+             alert(`⚠️ GAGAL KONEKSI SERVER!\nData tetap disimpan di HP.`);
         }
 
         // ⚠️ MASUK OFFLINE
@@ -1637,16 +1627,18 @@ async function submitFinalData() {
         
         // Simpan ke antrean offline
         let queue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
-        queue.push(payload);
+        
+        // 🔥 PERUBAHAN 4: 'payload' DISINI SEKARANG SUDAH ADA JAMNYA
+        queue.push(payload); 
+        
         localStorage.setItem('pendingRefuels', JSON.stringify(queue));
         
-        alert("📡 MODE OFFLINE: Data disimpan di HP (Akan terkirim otomatis saat Device mendapatkan sinyal)");
+        alert("📡 MODE OFFLINE: Data tersimpan (Jam scan sudah terkunci).");
         location.reload();
     } finally {
         isProcessing = false;
     }
 }
-
 
 // 🔄 FUNGSI SINKRONISASI (DATA LITER + LAPORAN PENOLAKAN)
 
