@@ -1508,10 +1508,12 @@ async function submitFinalData() {
         return;
     }
 
-    // 3. VALIDASI BATAS ATAS
+    // 3. VALIDASI BATAS ATAS (MAKSIMAL 333 LITER)
     if (literVal > MAX_LITER) {
         alert(`❌ ERROR: MELEBIHI KAPASITAS!\nMaksimal pengisian adalah ${MAX_LITER} Liter.`);
-        if (typeof speak === "function") speak(`Maksimal ${MAX_LITER} liter.`, "error");
+        
+        if (typeof speak === "function") speak(`Pengisian terlalu banyak.`, "error");
+        if (typeof playBeep === "function") playBeep("error");
         
         literInput.style.borderColor = "red"; 
         literInput.value = ""; 
@@ -1519,7 +1521,7 @@ async function submitFinalData() {
         return; 
     }
 
-    // 4. VALIDASI BATAS BAWAH
+    // 4. VALIDASI BATAS BAWAH (MINUS ATAU 0)
     if (literVal <= 0) {
         alert("❌ ERROR: JUMLAH TIDAK VALID!\nJumlah solar tidak boleh 0 atau minus.");
         literInput.style.borderColor = "red";
@@ -1527,15 +1529,17 @@ async function submitFinalData() {
         return; 
     }
 
-    // 5. DETEKSI ANOMALI HM
+    // 5. DETEKSI ANOMALI HM (SOFT VALIDATION)
     if (currentLastHM > 0) {
         let isAnomaly = false;
         let warningText = "";
 
+        // KASUS A: HM Turun
         if (hmVal < currentLastHM) {
             isAnomaly = true;
             warningText = `⚠️ PERINGATAN: HM TURUN!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}`;
         } 
+        // KASUS B: HM Loncat > 20 Jam
         else if (hmVal > (currentLastHM + 20)) {
             isAnomaly = true;
             warningText = `⚠️ PERINGATAN: LONJAKAN HM!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}`;
@@ -1557,7 +1561,8 @@ async function submitFinalData() {
 
     // --- JIKA LOLOS SEMUA VALIDASI, BARU PROSES ---
     
-    // 🔥 PERUBAHAN 1: AMBIL WAKTU DETIK INI JUGA (SEBELUM KIRIM)
+    // 🔥 [REVISI 1] AMBIL WAKTU DETIK INI JUGA (SEBELUM KIRIM)
+    // Kita kunci jamnya sekarang. Format ISO agar aman dibaca server.
     const timestampKunci = new Date().toISOString(); 
 
     // KUNCI TOMBOL
@@ -1565,15 +1570,16 @@ async function submitFinalData() {
     btn.disabled = true;
     btn.innerHTML = "⏳ MENGIRIM...";
 
-    // 🔥 PERUBAHAN 2: MASUKKAN JAM KE DALAM PAYLOAD
-    // Agar saat masuk Offline Storage, jamnya terbawa
+    // 🔥 [REVISI 2] MASUKKAN JAM KE DALAM PAYLOAD
+    // Payload inilah yang akan disimpan ke LocalStorage jika offline.
+    // Sekarang payload ini membawa jam scan!
     const payload = {
         unitId: currentUnitId,
-        liter: literVal,
-        hm: hmVal,
+        liter: literVal, 
+        hm: hmVal,       
         line: user,
         device: "Mobile Trial",
-        timestamp: timestampKunci // <--- INI PENTING!
+        timestamp: timestampKunci // <--- INI KUNCINYA
     };
 
     try {
@@ -1585,7 +1591,8 @@ async function submitFinalData() {
         formData.append("line", payload.line);
         formData.append("device", payload.device);
         
-        // 🔥 PERUBAHAN 3: KIRIM PARAMETER 'originalTime' KE SERVER
+        // 🔥 [REVISI 3] KIRIM PARAMETER 'originalTime' KE SERVER
+        // Agar Google Script tahu ini jam scan asli, bukan jam server.
         formData.append("originalTime", payload.timestamp);
 
         // Timeout 10 detik
@@ -1615,31 +1622,27 @@ async function submitFinalData() {
     } catch (err) {
         console.warn("⚠️ Gagal Online, Beralih ke Offline:", err);
         
-        // --- DIAGNOSA ERROR ---
-        if (!navigator.onLine) {
-             alert("📡 MODE OFFLINE: Sinyal HP hilang. Data disimpan di internal.");
-        } else {
-             alert(`⚠️ GAGAL KONEKSI SERVER!\nData tetap disimpan di HP.`);
-        }
-
-        // ⚠️ MASUK OFFLINE
+        // ⚠️ MASUK OFFLINE LOGIC
+        
+        // 1. Simpan history lokal (agar tidak scan unit sama dlm waktu dekat)
         saveLocalHistory(currentUnitId);
         
-        // Simpan ke antrean offline
+        // 2. Simpan ke antrean offline (LocalStorage)
         let queue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
         
-        // 🔥 PERUBAHAN 4: 'payload' DISINI SEKARANG SUDAH ADA JAMNYA
+        // Karena 'payload' di atas sudah ada 'timestamp', maka data offline ini aman!
         queue.push(payload); 
         
         localStorage.setItem('pendingRefuels', JSON.stringify(queue));
         
-        alert("📡 MODE OFFLINE: Data tersimpan (Jam scan sudah terkunci).");
+        // 🔥 [REVISI 4] POP UP SATU KALI SAJA (SESUAI REQUEST)
+        alert("📡 MODE OFFLINE: Data Tersimpan di lokal (termasuk jam ketika scan).");
+        
         location.reload();
     } finally {
         isProcessing = false;
     }
 }
-
 // 🔄 FUNGSI SINKRONISASI (DATA LITER + LAPORAN PENOLAKAN)
 
 async function uploadPendingData() {
