@@ -1,25 +1,25 @@
-// 🚀 SERVICE WORKER - V2.0 (MACO OFFLINE READY)
-const CACHE_NAME = 'refuel-maco-v27.0'; // Ganti versi jika ada update besar
+// 🚀 SERVICE WORKER - V28.0 (MACO DEXTER - NEW UI & OFFLINE READY)
+const CACHE_NAME = 'refuel-maco-v28.0'; // Versi dinaikkan agar HP Fuelman otomatis update
 
 // 📋 Assets yang WAJIB disimpan di memori HP
 // Jika salah satu gagal didownload, installasi offline akan gagal.
 const URLS_TO_CACHE = [
   './',                // Root folder
-  './index.html',      // File utama
+  './index.html',      // File utama (Pastikan nama filenya index.html)
   './manifest.json',   // Manifest PWA
-  './PITSTOP-39.png',  // Background Image (Pastikan file ini ada!)
-  './icon-qr-refueling.png', //icon untuk aplikasinya
+  './PITSTOP-39.png',  // Background Image 
+  './icon-qr-refueling.png', // Icon aplikasi
   
   // 🌍 EXTERNAL LIBRARY (PENTING AGAR KAMERA JALAN OFFLINE)
   'https://unpkg.com/html5-qrcode@latest',
   
-  // 🔠 FONTS (Agar tampilan tetap cantik offline)
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap'
+  // 🔠 FONTS CYBERPUNK (Agar UI tetap keren saat offline)
+  'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap'
 ];
 
 // ✅ INSTALL EVENT - Download semua aset saat pertama kali dibuka
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing & Caching Assets...');
+  console.log('[SW] Installing & Caching Assets v28.0...');
   
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -53,11 +53,9 @@ self.addEventListener('activate', (event) => {
 });
 
 // ✅ FETCH EVENT - Strategi: Network First, Fallback to Cache
-// Coba internet dulu, kalau mati lampu (offline), ambil dari memori HP
 self.addEventListener('fetch', (event) => {
   
   // 1. Jangan cache request ke Google Script (API Data)
-  // Biarkan JavaScript di index.html yang menangani antrean data ini
   if (event.request.url.includes('script.google.com')) {
     return; 
   }
@@ -81,13 +79,11 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        // 3. JIKA OFFLINE / ERROR NETWORK
-        // Ambil file dari cache memori HP
+        // 3. JIKA OFFLINE / ERROR NETWORK -> Ambil file dari cache memori HP
         return caches.match(event.request).then((response) => {
             if (response) {
                 return response;
             }
-            // Jika file tidak ada di cache sama sekali (misal gambar baru)
             console.log('[SW] File tidak ditemukan di cache:', event.request.url);
         });
       })

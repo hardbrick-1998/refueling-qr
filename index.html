@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>BARCODE REFUELING MACO HAULING - LATEST VERSION</title>
+    <title>BARCODE REFUELING MACO HAULING - BETA VERSION</title>
   
   <!-- 🔗 PWA MANIFEST LINK -->
   <link rel="manifest" href="manifest.json">
@@ -400,7 +400,7 @@
       margin-top: 5px;
     }
     
-    #literInput:focus, #hmInput:focus {
+    #literInput:focus, #hmInput:focus, #operatorInput:focus {
       border-color: var(--neon-blue) !important;
       box-shadow: 0 0 30px rgba(0, 243, 255, 0.5) !important;
     }
@@ -588,7 +588,12 @@
       <div class="error-box" id="errorMsg"></div>
       <form onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label>Username Bays</label>
+          <label>👤 Nama Fuelman</label>
+          <input type="text" id="fuelmanName" placeholder="Masukkan Nama Anda" required 
+            style="text-transform: uppercase;">
+        </div>
+        <div class="form-group">
+          <label>📍 Lokasi Bays</label>
           <select id="bays" required>
             <option value="">Pilih Bays</option>
             <option value="bays 1">Bays 1 (LINE A)</option>
@@ -608,26 +613,42 @@
 </div>
 
 <div id="scannerPage">
-  <div class="scanner-header">
-    <h1>📱 QR Scan</h1>
-    <div class="header-info">
-      <div class="user-badge" id="userInfo">-</div>
+  <div class="scanner-header" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+  <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+      <h1 style="font-size: 18px;">📱 QR Scan</h1>
       <button class="logout-btn" onclick="logout()">Logout</button>
-    </div>
   </div>
+  
+  <div id="fuelmanDisplay" style="width: 100%; background: rgba(0, 243, 255, 0.1); border: 1px solid var(--neon-blue); padding: 12px; border-radius: 8px; text-align: center; box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.05);">
+      <span style="font-size: 18px; font-weight: 800; display: block; color: #cbd5e1; letter-spacing: 1px; text-transform: uppercase;">FUELMAN SEDANG BERTUGAS</span>
+      <strong id="activeFuelmanName" style="font-size: 28px; font-family: 'Orbitron', sans-serif; letter-spacing: 3px; color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue), 0 0 30px rgba(0, 243, 255, 0.8); display: block; margin-top: 5px;">-</strong>
+  </div>
+  
+  <div class="user-badge" id="userInfo" style="width: 100%; text-align: center;">-</div>
+</div>
   <div class="scanner-content">
     <div class="scanner-main"> <div class="qr-display-area">
-        <h2>Scan QR Code</h2>
-        <div class="qr-reader-wrapper">
-          <div id="qr-reader"></div>
-          <button class="camera-toggle-btn" id="cameraToggleBtn" onclick="toggleCamera()" title="Tukar Kamera">📷</button>
-        </div>
-        <div id="result"><span>Tekan ▶ untuk mulai</span></div>
-        <div class="action-btns">
-          <button id="startBtn">▶</button>
-          <button id="stopBtn">⏹</button>
-        </div>
-      </div>
+    <h2 style="margin-bottom: 10px;">Scan QR Code</h2>
+    
+    <div class="qr-reader-wrapper">
+      <div id="qr-reader"></div>
+      <button class="camera-toggle-btn" id="cameraToggleBtn" onclick="toggleCamera()" title="Tukar Kamera">📷</button>
+    </div>
+
+    <div id="result" style="margin: 10px 0;"><span>Tekan ▶ untuk mulai SCAN </span></div>
+
+   <div style="margin: 15px 0;">
+        <input type="text" id="manualInput" inputmode="none"
+               placeholder="[ SCAN ZEBRA READY ]" 
+               style="width: 100%; padding: 15px; border-radius: 12px; border: 2px dashed rgba(0, 242, 255, 0.4); background: rgba(0, 0, 0, 0.5); color: var(--neon-blue); text-align: center; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; transition: all 0.3s ease; box-sizing: border-box;"
+               onkeypress="handleManualInput(event)"
+               autocomplete="off">
+    </div>
+    <div class="action-btns">
+      <button id="startBtn" onclick="startScan()" class="btn-scan-control" title="Mulai Kamera">▶</button>
+      <button id="stopBtn" onclick="stopScan()" class="btn-scan-control" title="Hentikan Kamera">⏹</button>
+    </div>
+</div>
 
         <div id="quantityArea" style="display: none; background: white; border-radius: 24px; padding: 30px 15px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; margin: 0 auto; box-sizing: border-box;">
         
@@ -641,6 +662,19 @@
     </div>
 
     <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+        
+        <div style="width: 310px; margin-bottom: 25px;">
+            <label style="color: #fff !important; font-size: 16px !important; letter-spacing: 1px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 10px; text-align: left; padding-left: 85px;">
+                NAMA OPERATOR <span style="color: #DC2626; font-size: 18px;">*</span>
+            </label>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 70px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 60px; line-height: 1;">👷‍♂️</span>
+                </div>
+                <input type="text" id="operatorInput" placeholder="NAMA" required
+                style="width: 220px; height: 90px !important; font-family: 'Orbitron', sans-serif; font-size: 30px !important; font-weight: 800; text-align: center; border: 3px solid rgba(0, 243, 255, 0.5); border-radius: 16px !important; color: var(--neon-blue) !important; background-color: #000 !important; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 243, 255, 0.8); outline: none;">
+            </div>
+        </div>
 
         <div style="width: 310px; margin-bottom: 25px;">
             <label style="color: #059669; font-size: 14px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 8px; text-align: left; padding-left: 85px;">
@@ -706,8 +740,8 @@ const CREDS = {
   "bays 3": { pwd: "12345", line: "C" }
 };
 
-// ✅ UPDATED URL - Apps Script V27.0
-const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbyosvPgdDyxwZfVFb3eUP-1ZZY0MYhKYmQ9pCcrWaNHQayYElI6bRF_rDsXAV4Wi_jJ/exec";
+// ✅ UPDATED URL - Apps Script V5.0
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbwCWywYDm6ptAydV89PuYYGNbHGGvY7uWJNDYvJoEVUOx5LIRy_FFF3cU6-Z9OrOCu3/exec";
 
 let user = null, line = null, qr = null, scanning = false, lastCode = null;
 let cameraFacing = "environment";
@@ -847,18 +881,20 @@ function handleLogin(e) {
   e.preventDefault();
   const b = document.getElementById("bays").value;
   const p = document.getElementById("pwd").value;
+  const name = document.getElementById("fuelmanName").value.trim().toUpperCase(); // Ambil Nama
   const err = document.getElementById("errorMsg");
-  const loginBtn = document.getElementById("loginBtn");
   
-  if(!b || !CREDS[b] || CREDS[b].pwd !== p) {
-    err.textContent = "❌ Username atau password salah!";
+  if(!b || !CREDS[b] || CREDS[b].pwd !== p || !name) {
+    err.textContent = "❌ Mohon Lengkapi Nama Anda, Bays Anda, dan Isi Password dengan Benar!";
     err.style.display = "block";
     return;
   }
   
   user = b;
   line = CREDS[b].line;
-  localStorage.setItem("s", JSON.stringify({ u: user, l: line }));
+  // Simpan Sesi (Termasuk Nama Fuelman)
+  localStorage.setItem("s", JSON.stringify({ u: user, l: line, n: name }));
+  
   document.querySelector("form").reset();
   err.style.display = "none";
   
@@ -892,6 +928,12 @@ function transitionToScanner() {
     scannerPage.classList.add("slide-up-fade-in");
     scannerPage.classList.add("active");
     
+    // --- MENGAMBIL DAN MENAMPILKAN NAMA FUELMAN DI SINI ---
+    const session = JSON.parse(localStorage.getItem("s"));
+    if (session && session.n) {
+        document.getElementById("activeFuelmanName").textContent = session.n;
+    }
+    
     document.getElementById("userInfo").textContent = `👤 ${user.toUpperCase()} (${line}) | Units: ${validUnitIds.size}`;
     
     setTimeout(() => {
@@ -907,7 +949,9 @@ function transitionToScanner() {
 
 function logout() {
   if(confirm("Logout?")) {
-    localStorage.removeItem("s");
+    // 🔥 PERBAIKAN: Hapus SEMUA memori, termasuk cache history yang error!
+    localStorage.clear(); 
+    
     user = null; line = null;
     validUnitIds.clear();
     refuelDB = {};
@@ -937,6 +981,13 @@ function showScanner() {
   loginPage.style.display = "none";
   scannerPage.style.display = "flex";
   scannerPage.classList.add("active");
+  
+  // --- MENGAMBIL DAN MENAMPILKAN NAMA FUELMAN DI SINI ---
+  const session = JSON.parse(localStorage.getItem("s"));
+  if (session && session.n) {
+      document.getElementById("activeFuelmanName").textContent = session.n;
+  }
+  
   document.getElementById("userInfo").textContent = `👤 ${user.toUpperCase()} (${line})`;
   
   setTimeout(() => {
@@ -994,13 +1045,23 @@ function extractUnitNumber(qrText) {
   return normalized.includes('|') ? normalized.split('|')[0].trim() : normalized;
 }
 
-// ✅ SIMPLIFIED: Parse DD/MM/YYYY HH:MM:SS format dari backend
+// ✅ SIMPLIFIED & FIXED: Parse DD/MM/YYYY HH:MM:SS format dari backend
 function parseTimestampSimple(timestampStr) {
   if (!timestampStr) return "Barusan";
   
   try {
-    // Biarkan Javascript memproses format ISO dari Google secara otomatis
-    const date = new Date(timestampStr);
+    let date;
+    // Penterjemah Tanggal Indonesia ke Javascript
+    if (typeof timestampStr === "string" && timestampStr.includes("/")) {
+        let parts = timestampStr.split(" ");
+        let dmy = parts[0].split("/"); // [dd, MM, yyyy]
+        let hms = parts[1] ? parts[1].split(":") : [0, 0, 0];
+        // Susun: Tahun, Bulan (0-11), Tanggal, Jam, Menit, Detik
+        date = new Date(dmy[2], dmy[1] - 1, dmy[0], hms[0], hms[1], hms[2]);
+    } else {
+        // Jika sudah format baku
+        date = new Date(timestampStr);
+    }
     
     // Pastikan valid
     if (isNaN(date.getTime())) return "-"; 
@@ -1009,13 +1070,12 @@ function parseTimestampSimple(timestampStr) {
     const jam = date.getHours().toString().padStart(2, '0');
     const menit = date.getMinutes().toString().padStart(2, '0');
     
-    return `${jam}:${menit}`; // Contoh Output: "14:30"
+    return `${jam}:${menit}`; 
   } catch (err) {
     console.error("Error parsing date:", err);
     return "-";
   }
 }
-
 function speak(text, beepType = null) {
   showVibrateNotification("🔊 Notifikasi", text);
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -1123,6 +1183,12 @@ function startScan() {
     // KUNCI TOMBOL (Scanning aktif)
     scanning = true; 
 
+    // 🔥 AUTO FOKUS KE KOTAK ZEBRA SAAT KAMERA NYALA
+    setTimeout(() => {
+        let manualBox = document.getElementById("manualInput");
+        if(manualBox) manualBox.focus();
+    }, 500);
+
     qr.start(
       { facingMode: cameraFacing }, 
       { fps: 10, qrbox: 250 }, 
@@ -1196,7 +1262,7 @@ async function onScan(decodedText) {
       // Ini mengatasi masalah unit ditolak padahal di server sudah boleh.
       
       apiRetryCount = 0;
-      const device = /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop";
+      const device = "REAL TIME"; // 🔥 UBAH JADI REAL TIME
       processQRCode(decodedText, device, result);
       
   } else {
@@ -1250,11 +1316,14 @@ async function processQRCode(decodedText, device, result, retryCount = 0) {
   }
 
   try {
+    const session = JSON.parse(localStorage.getItem("s")); // 🔥 BUKA MEMORI HP BUAT CARI NAMA
+
     const formData = new FormData();
     formData.append("qrData", decodedText);
     formData.append("userAgent", navigator.userAgent);
     formData.append("device", device);
     formData.append("line", line);
+    formData.append("fuelman", session ? session.n : "TIDAK TERDETEKSI"); // 🔥 KIRIM NAMANYA KE SERVER
     
     // Timeout 10 detik agar tidak menunggu selamanya jika sinyal lemot
     const controller = new AbortController();
@@ -1366,7 +1435,7 @@ function handleScanSuccess(data, decodedText, result) {
         <div style="margin: 10px 0; border-top: 1px dashed var(--neon-red); width: 100%; opacity: 0.5;"></div>
         <div style="text-align: left; width: 100%; font-size: 14px; padding: 0 10px;">
            📅 Terakhir: <b style="color: #fff;">${jamRefuel}</b><br>
-           📍 Lokasi: <b style="color: #fff;"> LINE ${allowedLine}</b><br>
+           📍 Lokasi: <b style="color: #fff;"> ${allowedLine}</b><br>
            ⏳ Tunggu: <b style="color: #ffcc00; font-size: 16px;">${waktuSisaStr}</b> lagi
         </div>
         <button onclick="startScan()" style="margin-top: 15px; background: rgba(220, 38, 38, 0.2); border: 1px solid var(--neon-red); color: var(--neon-red); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-family: 'Orbitron'; text-transform: uppercase;">SCAN UNIT LAIN 🔄</button>
@@ -1492,108 +1561,122 @@ async function submitFinalData() {
     if (isProcessing) return; 
 
     const btn = document.getElementById('saveLiterBtn');
+    const operatorInput = document.getElementById('operatorInput'); // 🔥 BARIS BARU
     const literInput = document.getElementById('literInput');
     const hmInput = document.getElementById('hmInput');
     
-    // Ambil value dan ubah ke Angka (Float) agar bisa dihitung
+    // Ambil value
+    const operatorVal = operatorInput.value.trim().toUpperCase(); // 🔥 BARIS BARU
     const literVal = parseFloat(literInput.value);
     const hmVal = parseFloat(hmInput.value); 
 
-    // --- BATAS PENGISIAN ---
     const MAX_LITER = 333;
 
-    // 2. VALIDASI DASAR (KOSONG)
-    if (!literInput.value || !hmInput.value) {
-        alert("⚠️ Mohon isi Jumlah Solar dan HM!");
+    // 2. 🔥 VALIDASI DASAR (KOSONG) - SEKARANG MENCEGAH OPERATOR KOSONG
+    if (!operatorVal || !literInput.value || !hmInput.value) {
+        alert("⚠️ Mohon isi Nama Operator, Jumlah Solar, dan HM!");
+        
+        // Kasih efek merah di kotak yang kosong
+        if (!operatorVal) operatorInput.style.borderColor = "red";
+        if (!literInput.value) literInput.style.borderColor = "red";
+        if (!hmInput.value) hmInput.style.borderColor = "red";
+        
         return;
     }
 
-    // 3. VALIDASI BATAS ATAS (MAKSIMAL 333 LITER)
+    // 3. 🔥 VALIDASI BATAS ATAS (MAKSIMAL 333 LITER) 🔥
     if (literVal > MAX_LITER) {
         alert(`❌ ERROR: MELEBIHI KAPASITAS!\nMaksimal pengisian adalah ${MAX_LITER} Liter.`);
         
-        if (typeof speak === "function") speak(`Pengisian terlalu banyak.`, "error");
+        if (typeof speak === "function") speak(`Pengisian terlalu banyak. Maksimal ${MAX_LITER} liter.`, "error");
         if (typeof playBeep === "function") playBeep("error");
         
         literInput.style.borderColor = "red"; 
         literInput.value = ""; 
         literInput.focus();
-        return; 
+        
+        return; // ⛔ STOP DISINI
     }
 
-    // 4. VALIDASI BATAS BAWAH (MINUS ATAU 0)
+    // 4. 🔥 VALIDASI BATAS BAWAH (MINUS ATAU 0) 🔥
     if (literVal <= 0) {
         alert("❌ ERROR: JUMLAH TIDAK VALID!\nJumlah solar tidak boleh 0 atau minus.");
+        
+        if (typeof speak === "function") speak("Jumlah liter tidak valid.", "error");
+        if (typeof playBeep === "function") playBeep("error");
+
         literInput.style.borderColor = "red";
         literInput.focus();
-        return; 
+        
+        return; // ⛔ STOP DISINI
     }
 
-    // 5. DETEKSI ANOMALI HM (SOFT VALIDATION)
+    // 5. 🔥 DETEKSI ANOMALI HM (SOFT VALIDATION) 🔥
+    // Logika ini hanya jalan jika 'currentLastHM' memiliki nilai (dari Backend)
     if (currentLastHM > 0) {
         let isAnomaly = false;
         let warningText = "";
 
-        // KASUS A: HM Turun
+        // KASUS A: HM Turun (Current < Last)
         if (hmVal < currentLastHM) {
             isAnomaly = true;
-            warningText = `⚠️ PERINGATAN: HM TURUN!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}`;
+            warningText = `⚠️ PERINGATAN: HM TURUN!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}\n\nNilai HM lebih kecil dari sebelumnya.`;
         } 
         // KASUS B: HM Loncat > 20 Jam
         else if (hmVal > (currentLastHM + 20)) {
             isAnomaly = true;
-            warningText = `⚠️ PERINGATAN: LONJAKAN HM!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}`;
+            warningText = `⚠️ PERINGATAN: LONJAKAN HM!\n\nHM terakhir: ${currentLastHM}\nHM sekarang: ${hmVal}\n\nAda ANOMALI selisih HM lebih dari 20 HM .`;
         }
 
+        // JIKA ADA ANOMALI, TAMPILKAN KONFIRMASI
         if (isAnomaly) {
-            if (typeof speak === "function") speak("Periksa input Hour Meter.", "error");
+            // Mainkan suara peringatan
+            if (typeof speak === "function") speak("Peringatan. Periksa kembali input Hour Meter.", "error");
             if (typeof playBeep === "function") playBeep("error");
 
-            const userConfirmed = confirm(`${warningText}\n\nApakah anda yakin nilai HM anda sekarang ${hmVal}?`);
+            // Munculkan Dialog Konfirmasi
+            const userConfirmed = confirm(`${warningText}\n\nHM mu terakhir pengisian adalah ${currentLastHM}.\nApakah anda yakin nilai HM anda sekarang ${hmVal}?`);
 
             if (!userConfirmed) {
+                // Jika User pilih "Cancel" / "Tidak"
                 hmInput.focus();
                 hmInput.style.borderColor = "red";
-                return; 
+                return; // ⛔ BATALKAN PENGIRIMAN
             }
+            // Jika User pilih "OK", lanjut ke bawah (Kirim Data)
         }
     }
 
     // --- JIKA LOLOS SEMUA VALIDASI, BARU PROSES ---
     
-    // 🔥 [REVISI 1] AMBIL WAKTU DETIK INI JUGA (SEBELUM KIRIM)
-    // Kita kunci jamnya sekarang. Format ISO agar aman dibaca server.
-    const timestampKunci = new Date().toISOString(); 
-
     // KUNCI TOMBOL
     isProcessing = true;
     btn.disabled = true;
     btn.innerHTML = "⏳ MENGIRIM...";
 
-    // 🔥 [REVISI 2] MASUKKAN JAM KE DALAM PAYLOAD
-    // Payload inilah yang akan disimpan ke LocalStorage jika offline.
-    // Sekarang payload ini membawa jam scan!
+    const session = JSON.parse(localStorage.getItem("s"));
+
     const payload = {
         unitId: currentUnitId,
+        operator: operatorVal, // 🔥 TAMBAHKAN INI SAYANG
         liter: literVal, 
         hm: hmVal,       
         line: user,
-        device: "Mobile Trial",
-        timestamp: timestampKunci // <--- INI KUNCINYA
+        fuelman: session ? session.n : "TIDAK TERDETEKSI", 
+        device: "REAL TIME",
+        timestamp: new Date().getTime() 
     };
 
-    try {
-        const formData = new FormData();
-        formData.append("action", "submitRefuel");
-        formData.append("unitId", payload.unitId);
-        formData.append("liter", payload.liter);
-        formData.append("hm", payload.hm);
-        formData.append("line", payload.line);
-        formData.append("device", payload.device);
-        
-        // 🔥 [REVISI 3] KIRIM PARAMETER 'originalTime' KE SERVER
-        // Agar Google Script tahu ini jam scan asli, bukan jam server.
-        formData.append("originalTime", payload.timestamp);
+     try {
+         const formData = new FormData();
+         formData.append("action", "submitRefuel");
+         formData.append("unitId", payload.unitId);
+         formData.append("operator", payload.operator); // 🔥 INI BARU
+         formData.append("liter", payload.liter);
+         formData.append("hm", payload.hm);
+         formData.append("line", payload.line);
+         formData.append("device", payload.device);
+         formData.append("fuelman", payload.fuelman); // 🔥 INI KUNCI PENGIRIMANNYA!
 
         // Timeout 10 detik
         const controller = new AbortController();
@@ -1622,27 +1705,32 @@ async function submitFinalData() {
     } catch (err) {
         console.warn("⚠️ Gagal Online, Beralih ke Offline:", err);
         
-        // ⚠️ MASUK OFFLINE LOGIC
-        
-        // 1. Simpan history lokal (agar tidak scan unit sama dlm waktu dekat)
+        // --- DIAGNOSA ERROR ---
+        // Kita cek apakah ini murni masalah sinyal atau masalah kodingan/server
+        if (!navigator.onLine) {
+             // Ini beneran Offline (Internet mati)
+             alert("📡 MODE OFFLINE: Sinyal HP hilang. Data disimpan di internal.");
+        } else {
+             // Ini Internet Nyala tapi Server Menolak (Kemungkinan masalah Deploy/Script)
+             alert(`⚠️ GAGAL KONEKSI SERVER!\n\nPesan Error: ${err.message}\n\n(Internet anda aktif, tapi Server menolak. Cek Izin Deployment Script "Anyone").\n\nData tetap disimpan di HP.`);
+        }
+
+        // ⚠️ MASUK OFFLINE
         saveLocalHistory(currentUnitId);
         
-        // 2. Simpan ke antrean offline (LocalStorage)
+        // Simpan ke antrean offline
         let queue = JSON.parse(localStorage.getItem('pendingRefuels') || '[]');
-        
-        // Karena 'payload' di atas sudah ada 'timestamp', maka data offline ini aman!
-        queue.push(payload); 
-        
+        queue.push(payload);
         localStorage.setItem('pendingRefuels', JSON.stringify(queue));
         
-        // 🔥 [REVISI 4] POP UP SATU KALI SAJA (SESUAI REQUEST)
-        alert("📡 MODE OFFLINE: Data Tersimpan di lokal (termasuk jam ketika scan).");
-        
+        alert("📡 MODE OFFLINE: Data disimpan di HP (Akan terkirim otomatis saat Device mendapatkan sinyal)");
         location.reload();
     } finally {
         isProcessing = false;
     }
 }
+
+
 // 🔄 FUNGSI SINKRONISASI (DATA LITER + LAPORAN PENOLAKAN)
 
 async function uploadPendingData() {
@@ -1675,43 +1763,46 @@ async function uploadPendingData() {
     let failedRejections = [];
 
     // --- 1. PROSES REFUEL ---
-    for (const item of refuelQueue) {
-        try {
-            const formData = new FormData();
-            formData.append("action", "submitRefuel");
-            formData.append("unitId", item.unitId);
-            formData.append("liter", item.liter);
-            formData.append("hm", item.hm);
-            formData.append("line", item.line);
-            formData.append("device", "Mobile (Synced)");
-            if(item.timestamp) formData.append("originalTime", item.timestamp);
+     for (const item of refuelQueue) {
+         try {
+             const formData = new FormData();
+             formData.append("action", "submitRefuel");
+             formData.append("unitId", item.unitId);
+             formData.append("operator", item.operator || "-"); // 🔥 TAMBAHKAN INI
+             formData.append("liter", item.liter);
+             formData.append("hm", item.hm);
+             formData.append("line", item.line);
+             formData.append("device", "OFFLINE"); // 🔥 UBAH JADI OFFLINE
+             formData.append("fuelman", item.fuelman || "TIDAK TERDETEKSI");
+             if(item.timestamp) formData.append("originalTime", item.timestamp);
 
-            const response = await fetch(apiUrl, { method: "POST", body: formData, redirect: "follow" });
-            // Cek apakah server merespon success
-            const resData = await response.json();
-            if(resData.status !== "success") throw new Error("Server Error");
+             const response = await fetch(apiUrl, { method: "POST", body: formData, redirect: "follow" });
+             const resData = await response.json();
+             if(resData.status !== "success") throw new Error("Server Error");
 
-        } catch (err) {
-            console.warn("Gagal kirim item refuel:", err);
-            failedRefuels.push(item); // Tampung untuk dikembalikan
-        }
-    }
+         } catch (err) {
+             console.warn("Gagal kirim item refuel:", err);
+             failedRefuels.push(item);
+         }
+     }
 
-    // --- 2. PROSES PENOLAKAN (WA) ---
-    for (const item of rejectQueue) {
-        try {
-            const formData = new FormData();
-            formData.append("action", "reportOfflineRejection");
-            formData.append("unitId", item.unitId);
-            formData.append("line", item.line);
-            formData.append("timestamp", item.timestamp);
-            
-            await fetch(apiUrl, { method: "POST", body: formData });
-        } catch (err) {
-            console.warn("Gagal kirim item reject:", err);
-            failedRejections.push(item);
-        }
-    }
+     // --- 2. PROSES PENOLAKAN (WA) ---
+     for (const item of rejectQueue) {
+         try {
+             const formData = new FormData();
+             formData.append("action", "reportOfflineRejection");
+             formData.append("unitId", item.unitId);
+             formData.append("line", item.line);
+             formData.append("timestamp", item.timestamp);
+             formData.append("fuelman", item.fuelman || "Tidak Diketahui"); 
+             formData.append("device", "OFFLINE"); // 🔥 TAMBAHKAN BARIS INI
+
+             await fetch(apiUrl, { method: "POST", body: formData });
+         } catch (err) {
+             console.warn("Gagal kirim item reject:", err);
+             failedRejections.push(item);
+         }
+     }
 
     // --- 3. HANDLING GAGAL & SUKSES ---
 
@@ -1790,58 +1881,54 @@ function saveLocalHistory(unitId) {
     return { allowed: true };
 }
 
-  // ==========================================
-  // 📝 FUNGSI CATAT PENOLAKAN KE MEMORI HP
-  // ==========================================
-  function queueOfflineRejection(unitId, reason) {
-    let rejections = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
-    rejections.push({
-        unitId: unitId,
-        line: user, 
-        timestamp: new Date().getTime(),
-        reason: reason
-    });
-    localStorage.setItem('pendingRejections', JSON.stringify(rejections));
-    console.log(`📝 Laporan penolakan disimpan lokal untuk: ${unitId}`);
-  } 
-
-  // 🔄 HEARTBEAT SYNC: Cek data tertunda setiap 15 detik secara otomatis
-  setInterval(() => {
-  if (navigator.onLine) {
-    console.log("🔍 Memeriksa antrean data offline...");
-    uploadPendingData();
-    }
-    }, 30000); // 15000 ms = 15 detik  
-
-    // ==========================================
-// 🚀 FUNGSI KIRIM REJECT LANGSUNG (REAL-TIME)
 // ==========================================
+   // 📝 FUNGSI CATAT PENOLAKAN KE MEMORI HP
+   // ==========================================
+   function queueOfflineRejection(unitId, reason) {
+     let rejections = JSON.parse(localStorage.getItem('pendingRejections') || '[]');
+     const session = JSON.parse(localStorage.getItem("s")); // 🔥 AMBIL NAMA
+     
+     rejections.push({
+         unitId: unitId,
+         line: user, 
+         fuelman: session ? session.n : "Tidak Diketahui", // 🔥 SIMPAN NAMA
+         timestamp: new Date().getTime(),
+         reason: reason
+     });
+     localStorage.setItem('pendingRejections', JSON.stringify(rejections));
+     console.log(`📝 Laporan penolakan disimpan lokal untuk: ${unitId}`);
+   }
+
 // ==========================================
 // 🚀 FUNGSI KIRIM REJECT LANGSUNG (REAL-TIME)
 // ==========================================
 async function reportRejectionDirectly(unitId, reason) {
-    if (!navigator.onLine) {
-        queueOfflineRejection(unitId, reason);
-        return;
-    }
-    try {
-        const formData = new FormData();
-        formData.append("action", "reportOfflineRejection");
-        formData.append("unitId", unitId);
-        formData.append("line", user);
-        formData.append("timestamp", new Date().getTime());
-        formData.append("reason", reason);
+     if (!navigator.onLine) {
+         queueOfflineRejection(unitId, reason);
+         return;
+     }
+     try {
+         const session = JSON.parse(localStorage.getItem("s")); // 🔥 AMBIL NAMA
 
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
+         const formData = new FormData();
+         formData.append("action", "reportOfflineRejection");
+         formData.append("unitId", unitId);
+         formData.append("line", user);
+         formData.append("timestamp", new Date().getTime());
+         formData.append("reason", reason);
+         formData.append("fuelman", session ? session.n : "Tidak Diketahui"); 
+         formData.append("device", "REAL TIME"); // 🔥 TAMBAHKAN BARIS INI
 
-        await fetch(apiUrl, { method: "POST", body: formData, signal: controller.signal });
-        clearTimeout(timeout);
-        console.log("✅ Rejection terkirim ke WA secara Direct");
-    } catch (err) {
-        console.warn("Gagal kirim reject langsung, menyimpan ke antrean...", err);
-        queueOfflineRejection(unitId, reason);
-    }
+         const controller = new AbortController();
+         const timeout = setTimeout(() => controller.abort(), 15000);
+
+         await fetch(apiUrl, { method: "POST", body: formData, signal: controller.signal });
+         clearTimeout(timeout);
+         console.log("✅ Rejection terkirim ke WA secara Direct");
+     } catch (err) {
+         console.warn("Gagal kirim reject langsung, menyimpan ke antrean...", err);
+         queueOfflineRejection(unitId, reason);
+     }
 }
 
 // ==========================================
@@ -1891,6 +1978,69 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script>
+  // 1. Fungsi saat tombol Enter ditekan (Oleh Zebra Scanner)
+  function handleManualInput(e) {
+    if (e.key === "Enter") {
+        prosesDataScan();
+    }
+  }
 
+  // 2. Fungsi saat tombol GO diklik (Oleh Mouse/Jari)
+  function triggerManualScan() {
+    prosesDataScan();
+  }
+
+// 3. Otak Utamanya (Memproses Data)
+  function prosesDataScan() {
+    // Ambil elemen kotak input
+    let input = document.getElementById("manualInput");
+    
+    // Ambil teksnya, buang spasi, dan jadikan HURUF BESAR
+    let code = input.value.trim().toUpperCase(); 
+    
+    // Cek apakah kotak kosong?
+    if (code.length === 0) {
+        alert("Mohon isi Kode Unit dulu!");
+        input.focus();
+        return;
+    }
+
+    console.log("Input Diterima: " + code);
+    
+    // Bunyikan Beep (Pakai fungsi playBeep yang sudah ada di sistem Mass Faiz)
+    if (typeof playBeep === "function") {
+        playBeep("scanning");
+    }
+
+    // 🔥 PANGGIL FUNGSI UTAMA DEXTER 🔥
+    if (typeof onScan === "function") {
+        onScan(code); // Ini akan langsung memicu pengecekan online/offline
+    } else {
+        alert("Error: Fungsi onScan tidak ditemukan!");
+    }
+
+    // Bersihkan kotak input setelah sukses
+    input.value = "";
+    input.blur(); 
+  }
+
+  
+  // 🔥 AUTO-FOCUS LOCK UNTUK ZEBRA SCANNER 🔥
+  // Memastikan Zebra Scanner selalu siap sedia kapanpun laser ditekan
+  setInterval(() => {
+     let inputBox = document.getElementById("manualInput");
+     let scanArea = document.querySelector(".qr-display-area");
+     let quantityArea = document.getElementById("quantityArea");
+     
+     // Cek: Jika kamera sedang nyala (scanArea tampil) & belum masuk menu isi liter (quantityArea sembunyi)
+     if (inputBox && scanArea && scanArea.style.display !== 'none' && quantityArea.style.display === 'none') {
+         // Jika kursor hilang dari kotak, paksa kembali!
+         if (document.activeElement !== inputBox) {
+             inputBox.focus(); 
+         }
+     }
+  }, 1500); // Mengecek setiap 1.5 detik
+</script>
 </body>
 </html>
