@@ -741,7 +741,7 @@ const CREDS = {
 };
 
 // ✅ UPDATED URL - Apps Script V5.0
-const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbwCWywYDm6ptAydV89PuYYGNbHGGvY7uWJNDYvJoEVUOx5LIRy_FFF3cU6-Z9OrOCu3/exec";
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbzN2m4xlQTBXYFasxZ1JSyBf3FCgBXGPn4OwqJq-1JzEJ3vx-UjyNmDQH-N3dwdTgPW/exec";
 
 let user = null, line = null, qr = null, scanning = false, lastCode = null;
 let cameraFacing = "environment";
@@ -1655,10 +1655,14 @@ async function submitFinalData() {
     btn.innerHTML = "⏳ MENGIRIM...";
 
     const session = JSON.parse(localStorage.getItem("s"));
+    
+    // 🔥 1. BUAT NOMOR RESI UNIK (ANTI-DOUBLE BUG)
+    const txId = "TX-" + currentUnitId + "-" + new Date().getTime();
 
     const payload = {
+        transactionId: txId,   // <--- MASUKKAN RESI KE PAYLOAD
         unitId: currentUnitId,
-        operator: operatorVal, // 🔥 TAMBAHKAN INI SAYANG
+        operator: operatorVal, 
         liter: literVal, 
         hm: hmVal,       
         line: user,
@@ -1667,11 +1671,12 @@ async function submitFinalData() {
         timestamp: new Date().getTime() 
     };
 
-     try {
-         const formData = new FormData();
-         formData.append("action", "submitRefuel");
-         formData.append("unitId", payload.unitId);
-         formData.append("operator", payload.operator); // 🔥 INI BARU
+     try {
+         const formData = new FormData();
+         formData.append("action", "submitRefuel");
+         formData.append("transactionId", payload.transactionId); // <--- KIRIM RESI KE SERVER
+         formData.append("unitId", payload.unitId);
+         formData.append("operator", payload.operator); // 🔥 INI BARU
          formData.append("liter", payload.liter);
          formData.append("hm", payload.hm);
          formData.append("line", payload.line);
@@ -1762,19 +1767,20 @@ async function uploadPendingData() {
     let failedRefuels = [];
     let failedRejections = [];
 
-    // --- 1. PROSES REFUEL ---
-     for (const item of refuelQueue) {
-         try {
-             const formData = new FormData();
-             formData.append("action", "submitRefuel");
-             formData.append("unitId", item.unitId);
-             formData.append("operator", item.operator || "-"); // 🔥 TAMBAHKAN INI
-             formData.append("liter", item.liter);
-             formData.append("hm", item.hm);
-             formData.append("line", item.line);
-             formData.append("device", "OFFLINE"); // 🔥 UBAH JADI OFFLINE
+// --- 1. PROSES REFUEL ---
+     for (const item of refuelQueue) {
+         try {
+             const formData = new FormData();
+             formData.append("action", "submitRefuel");
+             formData.append("unitId", item.unitId);
+             formData.append("operator", item.operator || "-"); 
+             formData.append("liter", item.liter);
+             formData.append("hm", item.hm);
+             formData.append("line", item.line);
+             formData.append("device", "OFFLINE"); 
              formData.append("fuelman", item.fuelman || "TIDAK TERDETEKSI");
-             if(item.timestamp) formData.append("originalTime", item.timestamp);
+             if(item.transactionId) formData.append("transactionId", item.transactionId); // 🔥 BAWA RESI SAAT SINKRONISASI OFFLINE
+             if(item.timestamp) formData.append("originalTime", item.timestamp);
 
              const response = await fetch(apiUrl, { method: "POST", body: formData, redirect: "follow" });
              const resData = await response.json();
